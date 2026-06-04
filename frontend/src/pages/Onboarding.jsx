@@ -7,7 +7,8 @@ import { PERSONAS } from '../data/mockPersonas.js';
 const JOB_TYPES = ['직장인', '자영업자', '공무원', '프리랜서'];
 const RISK_TYPES = ['보수형', '중립형', '적극형'];
 const EVENT_TYPES = ['자녀대학', '자녀결혼', '부모부양', '이직·퇴직', '기타'];
-const MANUAL_STEPS = ['기본 정보', '재무 정보', '생애 이벤트'];
+// 직접 입력은 재무 정보만 — 나이/직업/은퇴시기/건강/리스크/이벤트는 PreDiagnosis에서 수집
+const MANUAL_STEPS = ['재무 정보'];
 
 function SelectGroup({ options, value, onChange }) {
   return (
@@ -23,19 +24,60 @@ function SelectGroup({ options, value, onChange }) {
   );
 }
 
+function toKoreanUnit(num) {
+  if (!num || num === 0) return '';
+  const uk = Math.floor(num / 100000000);
+  const man = Math.floor((num % 100000000) / 10000);
+  const rest = num % 10000;
+  const parts = [];
+  if (uk > 0) parts.push(`${uk}억`);
+  if (man > 0) parts.push(`${man}만`);
+  if (rest > 0 && uk === 0) parts.push(`${rest.toLocaleString('ko-KR')}`);
+  return parts.join(' ');
+}
+
 function NumInput({ label, value, onChange, placeholder = '0' }) {
+  const [display, setDisplay] = React.useState(value ? Number(value).toLocaleString('ko-KR') : '');
+  const [numVal, setNumVal] = React.useState(value ? Number(value) : 0);
+
+  const handleChange = (e) => {
+    const raw = e.target.value.replace(/,/g, '');
+    if (raw === '' || raw === '0') {
+      setDisplay(raw);
+      setNumVal(0);
+      onChange(0);
+      return;
+    }
+    if (!/^\d+$/.test(raw)) return;
+    const num = Number(raw);
+    setDisplay(num.toLocaleString('ko-KR'));
+    setNumVal(num);
+    onChange(num);
+  };
+
+  const korean = toKoreanUnit(numVal);
+
   return (
     <div className="input-group">
       <label className="input-label">{label}</label>
       <div style={{ position: 'relative' }}>
-        <input type="number" className="input-field"
-          value={value || ''} onChange={e => onChange(Number(e.target.value))}
-          placeholder={placeholder} style={{ paddingRight: 36 }} />
+        <input
+          type="text" inputMode="numeric" className="input-field"
+          value={display}
+          onChange={handleChange}
+          placeholder={placeholder}
+          style={{ paddingRight: 36 }}
+        />
         <span style={{
           position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
           color: 'var(--text-secondary)', fontSize: 14, pointerEvents: 'none',
         }}>원</span>
       </div>
+      {korean && (
+        <span style={{ fontSize: 13, color: 'var(--primary)', marginTop: 4, display: 'block' }}>
+          ({korean}원)
+        </span>
+      )}
     </div>
   );
 }
@@ -107,18 +149,12 @@ export default function Onboarding() {
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [manualStep, setManualStep] = useState(0);
 
-  /* 직접 입력 상태 */
-  const [basic, setBasic] = useState({
-    age: '', job_type: '직장인', retirement_target_age: '',
-    monthly_target_living_cost: '', risk_type: '중립형', health_issue: false,
-  });
+  /* 직접 입력 상태 — 재무 정보만 */
   const [finance, setFinance] = useState({
     monthly_income: '', monthly_expense: '', financial_assets: '',
     real_estate_assets: '', liabilities: '', national_pension_expected: '',
     retirement_pension: '', personal_pension: '',
   });
-  const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ type: '자녀대학', years_later: '', monthly_cost: '' });
 
   const resetAll = () => {
     setDiagnosis(null); setSimulation(null); setRecommend(null);
@@ -134,29 +170,18 @@ export default function Onboarding() {
     const { id, name, label, color, ...profile } = selectedPersona;
     resetAll();
     setProfile(profile);
-    navigate('/dashboard');
+    navigate('/pre-diagnosis');
   };
-
-  /* 직접 입력 제출 */
-  const addEvent = () => {
-    if (!newEvent.years_later || !newEvent.monthly_cost) return;
-    setEvents(prev => [...prev, {
-      type: newEvent.type,
-      years_later: Number(newEvent.years_later),
-      monthly_cost: Number(newEvent.monthly_cost),
-    }]);
-    setNewEvent({ type: '자녀대학', years_later: '', monthly_cost: '' });
-  };
-
-  const removeEvent = (i) => setEvents(prev => prev.filter((_, idx) => idx !== i));
 
   const handleManualNext = () => {
-    if (manualStep < MANUAL_STEPS.length - 1) { setManualStep(s => s + 1); return; }
     const profile = {
-      age: Number(basic.age), job_type: basic.job_type,
-      retirement_target_age: Number(basic.retirement_target_age),
-      monthly_target_living_cost: Number(basic.monthly_target_living_cost),
-      risk_type: basic.risk_type, health_issue: basic.health_issue,
+      // 나이·직업·은퇴시기·건강·리스크·이벤트는 PreDiagnosis에서 수집
+      age: 50, job_type: '직장인',
+      retirement_target_age: 62,
+      monthly_target_living_cost: 2500000,
+      risk_type: '중립형',
+      health_issue: false,
+      life_events: [],
       monthly_income: Number(finance.monthly_income),
       monthly_expense: Number(finance.monthly_expense),
       financial_assets: Number(finance.financial_assets),
@@ -165,18 +190,13 @@ export default function Onboarding() {
       national_pension_expected: Number(finance.national_pension_expected),
       retirement_pension: Number(finance.retirement_pension),
       personal_pension: Number(finance.personal_pension),
-      life_events: events,
     };
     resetAll();
     setProfile(profile);
-    navigate('/dashboard');
+    navigate('/pre-diagnosis');
   };
 
-  const canManualNext = () => {
-    if (manualStep === 0) return basic.age && basic.retirement_target_age && basic.monthly_target_living_cost;
-    if (manualStep === 1) return finance.monthly_income && finance.monthly_expense;
-    return true;
-  };
+  const canManualNext = () => finance.monthly_income && finance.monthly_expense;
 
   const handleBack = () => {
     if (screen === 'account') { setScreen('method'); return; }
@@ -360,143 +380,38 @@ export default function Onboarding() {
           </div>
 
           <div style={{ padding: '24px 20px' }}>
-            {/* Step 0: 기본 정보 */}
-            {manualStep === 0 && (
-              <>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>기본 정보를 입력해주세요</h2>
-                <p className="section-sub">노후 준비 진단에 필요한 기본 정보입니다.</p>
+            {/* 재무 정보만 입력 — 나이·직업·은퇴시기 등은 다음 단계(PreDiagnosis)에서 수집 */}
+            <div style={{ background: 'var(--primary-light)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: 'var(--primary)', lineHeight: 1.7 }}>
+              재무 정보를 입력해 주세요.<br />나이·직업 등 나머지 정보는 다음 단계에서 입력합니다.
+            </div>
 
-                <div className="input-group">
-                  <label className="input-label">현재 나이</label>
-                  <input type="number" className="input-field" placeholder="예: 55"
-                    value={basic.age} onChange={e => setBasic(p => ({ ...p, age: e.target.value }))} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">직업 유형</label>
-                  <SelectGroup options={JOB_TYPES} value={basic.job_type}
-                    onChange={v => setBasic(p => ({ ...p, job_type: v }))} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">은퇴 목표 나이</label>
-                  <input type="number" className="input-field" placeholder="예: 62"
-                    value={basic.retirement_target_age}
-                    onChange={e => setBasic(p => ({ ...p, retirement_target_age: e.target.value }))} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">은퇴 후 월 목표 생활비</label>
-                  <div style={{ position: 'relative' }}>
-                    <input type="number" className="input-field" placeholder="예: 2500000"
-                      value={basic.monthly_target_living_cost}
-                      onChange={e => setBasic(p => ({ ...p, monthly_target_living_cost: e.target.value }))}
-                      style={{ paddingRight: 36 }} />
-                    <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: 14 }}>원</span>
-                  </div>
-                </div>
-                <div className="input-group">
-                  <label className="input-label">투자 성향</label>
-                  <SelectGroup options={RISK_TYPES} value={basic.risk_type}
-                    onChange={v => setBasic(p => ({ ...p, risk_type: v }))} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">건강 이슈 여부</label>
-                  <div className="select-group">
-                    <button type="button" className={`select-btn ${!basic.health_issue ? 'selected' : ''}`}
-                      onClick={() => setBasic(p => ({ ...p, health_issue: false }))}>없음</button>
-                    <button type="button" className={`select-btn ${basic.health_issue ? 'selected' : ''}`}
-                      onClick={() => setBasic(p => ({ ...p, health_issue: true }))}>있음</button>
-                  </div>
-                </div>
-              </>
-            )}
+            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>재무 현황을 입력해주세요</h2>
+            <p className="section-sub">모든 금액은 원(₩) 단위입니다.</p>
 
-            {/* Step 1: 재무 정보 */}
-            {manualStep === 1 && (
-              <>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>재무 현황을 입력해주세요</h2>
-                <p className="section-sub">모든 금액은 원(₩) 단위입니다.</p>
-                <NumInput label="월 소득 (세후)" value={finance.monthly_income}
-                  onChange={v => setFinance(p => ({ ...p, monthly_income: v }))} placeholder="예: 5200000" />
-                <NumInput label="월 고정 지출" value={finance.monthly_expense}
-                  onChange={v => setFinance(p => ({ ...p, monthly_expense: v }))} placeholder="예: 3800000" />
-                <NumInput label="금융 자산 (예금·주식 등)" value={finance.financial_assets}
-                  onChange={v => setFinance(p => ({ ...p, financial_assets: v }))} placeholder="예: 120000000" />
-                <NumInput label="부동산 자산" value={finance.real_estate_assets}
-                  onChange={v => setFinance(p => ({ ...p, real_estate_assets: v }))} placeholder="예: 350000000" />
-                <NumInput label="부채 (대출 잔액 등)" value={finance.liabilities}
-                  onChange={v => setFinance(p => ({ ...p, liabilities: v }))} placeholder="예: 80000000" />
-                <div style={{ height: 1, background: 'var(--border)', margin: '20px 0' }} />
-                <p className="section-sub">예상 연금 수령액</p>
-                <NumInput label="국민연금 예상 수령액/월" value={finance.national_pension_expected}
-                  onChange={v => setFinance(p => ({ ...p, national_pension_expected: v }))} placeholder="예: 870000" />
-                <NumInput label="퇴직연금 총 적립액" value={finance.retirement_pension}
-                  onChange={v => setFinance(p => ({ ...p, retirement_pension: v }))} placeholder="예: 40000000" />
-                <NumInput label="개인연금 수령액/월" value={finance.personal_pension}
-                  onChange={v => setFinance(p => ({ ...p, personal_pension: v }))} placeholder="0" />
-              </>
-            )}
+            <NumInput label="월 소득 (세후)" value={finance.monthly_income}
+              onChange={v => setFinance(p => ({ ...p, monthly_income: v }))} placeholder="예: 5,200,000" />
+            <NumInput label="월 고정 지출" value={finance.monthly_expense}
+              onChange={v => setFinance(p => ({ ...p, monthly_expense: v }))} placeholder="예: 3,800,000" />
+            <NumInput label="금융 자산 (예금·주식 등)" value={finance.financial_assets}
+              onChange={v => setFinance(p => ({ ...p, financial_assets: v }))} placeholder="예: 120,000,000" />
+            <NumInput label="부동산 자산" value={finance.real_estate_assets}
+              onChange={v => setFinance(p => ({ ...p, real_estate_assets: v }))} placeholder="예: 350,000,000" />
+            <NumInput label="부채 (대출 잔액 등)" value={finance.liabilities}
+              onChange={v => setFinance(p => ({ ...p, liabilities: v }))} placeholder="예: 80,000,000" />
 
-            {/* Step 2: 생애 이벤트 */}
-            {manualStep === 2 && (
-              <>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>생애 이벤트를 등록해주세요</h2>
-                <p className="section-sub">향후 발생할 주요 지출 이벤트를 입력하면 더 정확한 시뮬레이션이 가능합니다.</p>
+            <div style={{ height: 1, background: 'var(--border)', margin: '20px 0' }} />
+            <p className="section-sub">예상 연금 수령액</p>
 
-                {events.length > 0 && (
-                  <div style={{ marginBottom: 20 }}>
-                    {events.map((e, i) => (
-                      <div key={i} style={{
-                        background: 'var(--bg-card)', borderRadius: 12, padding: '14px 16px',
-                        marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        boxShadow: 'var(--shadow-card)',
-                      }}>
-                        <div>
-                          <span style={{ fontWeight: 700, marginRight: 8 }}>{e.type}</span>
-                          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                            {e.years_later}년 후 · 월 {e.monthly_cost.toLocaleString('ko-KR')}원
-                          </span>
-                        </div>
-                        <button onClick={() => removeEvent(i)} style={{
-                          border: 'none', background: 'none', color: 'var(--danger)', fontSize: 18, cursor: 'pointer',
-                        }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px', boxShadow: 'var(--shadow-card)' }}>
-                  <div className="input-group">
-                    <label className="input-label">이벤트 유형</label>
-                    <SelectGroup options={EVENT_TYPES} value={newEvent.type}
-                      onChange={v => setNewEvent(p => ({ ...p, type: v }))} />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div className="input-group" style={{ marginBottom: 0 }}>
-                      <label className="input-label">몇 년 후</label>
-                      <input type="number" className="input-field" placeholder="예: 2"
-                        value={newEvent.years_later}
-                        onChange={e => setNewEvent(p => ({ ...p, years_later: e.target.value }))} />
-                    </div>
-                    <div className="input-group" style={{ marginBottom: 0 }}>
-                      <label className="input-label">월 비용(원)</label>
-                      <input type="number" className="input-field" placeholder="예: 1200000"
-                        value={newEvent.monthly_cost}
-                        onChange={e => setNewEvent(p => ({ ...p, monthly_cost: e.target.value }))} />
-                    </div>
-                  </div>
-                  <button className="btn-secondary" style={{ marginTop: 16 }} onClick={addEvent}>
-                    + 이벤트 추가
-                  </button>
-                </div>
-
-                <p style={{ marginTop: 16, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
-                  이벤트가 없다면 바로 다음 단계로 진행하세요.
-                </p>
-              </>
-            )}
+            <NumInput label="국민연금 예상 수령액/월" value={finance.national_pension_expected}
+              onChange={v => setFinance(p => ({ ...p, national_pension_expected: v }))} placeholder="예: 870,000" />
+            <NumInput label="퇴직연금 총 적립액" value={finance.retirement_pension}
+              onChange={v => setFinance(p => ({ ...p, retirement_pension: v }))} placeholder="예: 40,000,000" />
+            <NumInput label="개인연금 수령액/월" value={finance.personal_pension}
+              onChange={v => setFinance(p => ({ ...p, personal_pension: v }))} placeholder="0" />
 
             <button className="btn-primary" style={{ marginTop: 32 }}
               disabled={!canManualNext()} onClick={handleManualNext}>
-              {manualStep < MANUAL_STEPS.length - 1 ? '다음 →' : '진단 시작하기 🧭'}
+              다음 단계로 →
             </button>
           </div>
         </>

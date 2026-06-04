@@ -77,29 +77,31 @@ class DiagnosisResult(BaseModel):
 
 class SimulationRequest(BaseModel):
     profile: UserProfile
-    scenario: str = "neutral"
 
 
 class CashFlowPoint(BaseModel):
     year: int
     age: int
-    monthly_cash_flow: int
-    is_deficit: bool
+    monthly_cash_flow: int        # 기댓값 (중앙선)
+    upper_cash_flow: int          # 신뢰구간 상단 (+1σ)
+    lower_cash_flow: int          # 신뢰구간 하단 (-1σ)
+    is_deficit: bool              # 기댓값 기준 적자 여부
     events: list[str] = []
 
 
-class ScenarioResult(BaseModel):
-    scenario: str
-    data: list[CashFlowPoint]
-    deficit_start_age: Optional[int] = None
-    total_deficit_months: int
+class SimulationAssumptions(BaseModel):
+    inflation_rate: float         # 물가상승률 (연 %)
+    wage_growth_rate: float       # 임금상승률 (연 %)
+    medical_cost_growth_rate: float  # 의료비 상승률 (연 %)
+    uncertainty_rate: float       # 연간 불확실성 σ (%)
 
 
 class SimulationResult(BaseModel):
-    optimistic: ScenarioResult
-    neutral: ScenarioResult
-    pessimistic: ScenarioResult
+    data: list[CashFlowPoint]
+    deficit_start_age: Optional[int] = None
+    total_deficit_months: int
     key_risk_message: str
+    assumptions: SimulationAssumptions
 
 
 class RecommendRequest(BaseModel):

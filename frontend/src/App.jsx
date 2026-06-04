@@ -4,6 +4,7 @@ import { Home, BarChart2, TrendingUp, Lightbulb, MessageCircle } from 'lucide-re
 
 import HomePage from './pages/Home.jsx';
 import Onboarding from './pages/Onboarding.jsx';
+import PreDiagnosis from './pages/PreDiagnosis.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Diagnosis from './pages/Diagnosis.jsx';
 import Simulation from './pages/Simulation.jsx';
@@ -27,7 +28,7 @@ const NAV_ITEMS = [
 function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const hiddenPaths = ['/', '/onboarding'];
+  const hiddenPaths = ['/', '/onboarding', '/pre-diagnosis'];
   if (hiddenPaths.includes(location.pathname)) return null;
 
   return (
@@ -56,6 +57,7 @@ function AppShell() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/pre-diagnosis" element={<PreDiagnosis />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/diagnosis" element={<Diagnosis />} />
           <Route path="/simulation" element={<Simulation />} />

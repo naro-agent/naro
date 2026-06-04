@@ -20,3 +20,6 @@ export const runRecommend = (profile, diagnosis) =>
 
 export const sendChat = (message, profile, diagnosis, history, mode = 'free') =>
   client.post('/chat', { message, profile, diagnosis, history, mode }).then(r => r.data);
+
+export const submitFeedback = (data) =>
+  client.post('/feedback', data).then(r => r.data);
