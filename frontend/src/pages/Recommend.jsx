@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Landmark, PiggyBank, BarChart3, ShieldCheck, Building2, ChevronRight, Info } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { runRecommend } from '../api/apiClient.js';
 
 const CATEGORY_ICON = {
-  연금: '🏦', 저축: '💰', 지출관리: '📊', 보험: '🛡️', 자산관리: '🏠',
+  연금: Landmark, 저축: PiggyBank, 지출관리: BarChart3, 보험: ShieldCheck, 자산관리: Building2,
 };
 
 const BANK_COLOR = {
@@ -92,10 +93,9 @@ export default function Recommend() {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div style={{
                 width: 44, height: 44, background: 'var(--primary-light)', borderRadius: 12,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 20, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                {CATEGORY_ICON[card.category] || '💡'}
+                {React.createElement(CATEGORY_ICON[card.category] || Info, { size: 20, color: 'var(--primary)', strokeWidth: 1.8 })}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>

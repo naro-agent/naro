@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-from app.routers import diagnosis, simulation, recommend, chat
+from app.routers import diagnosis, simulation, recommend, chat, feedback
 from app.data.mock_personas import PERSONAS
 
 load_dotenv()
@@ -22,6 +22,7 @@ app.include_router(diagnosis.router, prefix="/api")
 app.include_router(simulation.router, prefix="/api")
 app.include_router(recommend.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+app.include_router(feedback.router, prefix="/api")
 
 
 @app.get("/api/personas")

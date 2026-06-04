@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Home, BarChart2, TrendingUp, Lightbulb, MessageCircle } from 'lucide-react';
 
-import Home from './pages/Home.jsx';
+import HomePage from './pages/Home.jsx';
 import Onboarding from './pages/Onboarding.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Diagnosis from './pages/Diagnosis.jsx';
@@ -16,11 +17,11 @@ export function useAppContext() {
 }
 
 const NAV_ITEMS = [
-  { path: '/dashboard', icon: '🏠', label: '홈' },
-  { path: '/diagnosis', icon: '📊', label: '진단' },
-  { path: '/simulation', icon: '📈', label: '시뮬' },
-  { path: '/recommend', icon: '💡', label: '추천' },
-  { path: '/chat', icon: '💬', label: 'AI상담' },
+  { path: '/dashboard', Icon: Home, label: '홈' },
+  { path: '/diagnosis', Icon: BarChart2, label: '진단' },
+  { path: '/simulation', Icon: TrendingUp, label: '시뮬' },
+  { path: '/recommend', Icon: Lightbulb, label: '추천' },
+  { path: '/chat', Icon: MessageCircle, label: 'AI상담' },
 ];
 
 function BottomNav() {
@@ -31,16 +32,19 @@ function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      {NAV_ITEMS.map(item => (
-        <button
-          key={item.path}
-          className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-          onClick={() => navigate(item.path)}
-        >
-          <span className="nav-icon">{item.icon}</span>
-          <span>{item.label}</span>
-        </button>
-      ))}
+      {NAV_ITEMS.map(({ path, Icon, label }) => {
+        const active = location.pathname === path;
+        return (
+          <button
+            key={path}
+            className={`nav-item ${active ? 'active' : ''}`}
+            onClick={() => navigate(path)}
+          >
+            <Icon size={22} strokeWidth={active ? 2.2 : 1.6} />
+            <span>{label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -50,7 +54,7 @@ function AppShell() {
     <div className="app-shell">
       <div className="page-content">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/diagnosis" element={<Diagnosis />} />

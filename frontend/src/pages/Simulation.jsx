@@ -13,9 +13,13 @@ const SCENARIO_LABELS = {
   pessimistic: { label: '비관', color: 'var(--danger)', desc: '이벤트 비용 +30%' },
 };
 
-const fmt = (n) => {
-  if (Math.abs(n) >= 10000) return (n / 10000).toFixed(0) + '만';
-  return n.toLocaleString();
+const fmtWon = (n) => n.toLocaleString('ko-KR') + '원';
+const fmtAxis = (n) => {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 100000000) return sign + (abs / 100000000).toFixed(0) + '억';
+  if (abs >= 10000) return sign + (abs / 10000).toFixed(0) + '만';
+  return n.toLocaleString('ko-KR');
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -29,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     }}>
       <p style={{ fontWeight: 700, marginBottom: 4 }}>{d.age}세 ({d.year + 1}년 후)</p>
       <p style={{ color: d.monthly_cash_flow >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-        월 {d.monthly_cash_flow >= 0 ? '+' : ''}{d.monthly_cash_flow.toLocaleString()}원
+        월 {d.monthly_cash_flow >= 0 ? '+' : ''}{d.monthly_cash_flow.toLocaleString('ko-KR')}원
       </p>
       {d.events?.length > 0 && (
         <p style={{ color: 'var(--warning)', marginTop: 4 }}>📅 {d.events.join(', ')}</p>
@@ -141,7 +145,7 @@ export default function Simulation() {
             <LineChart data={currentScenario.data} margin={{ left: 8, right: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="age" tickFormatter={v => v + '세'} tick={{ fontSize: 11 }} interval={4} />
-              <YAxis tickFormatter={v => fmt(v)} tick={{ fontSize: 11 }} width={48} />
+              <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11 }} width={52} />
               <Tooltip content={<CustomTooltip />} />
               <ReferenceLine y={0} stroke="var(--text-secondary)" strokeDasharray="4 4" />
               {deficitRanges.map((r, i) => (
@@ -212,7 +216,7 @@ export default function Simulation() {
               }}>
                 <span style={{ fontWeight: 600 }}>{e.type}</span>
                 <span style={{ color: 'var(--danger)' }}>
-                  -{e.monthly_cost.toLocaleString()}원/월 · {e.years_later}년 후~
+                  -{fmtWon(e.monthly_cost)}/월 · {e.years_later}년 후~
                 </span>
               </div>
             ))}

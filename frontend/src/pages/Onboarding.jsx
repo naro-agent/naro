@@ -452,7 +452,7 @@ export default function Onboarding() {
                         <div>
                           <span style={{ fontWeight: 700, marginRight: 8 }}>{e.type}</span>
                           <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                            {e.years_later}년 후 · 월 {e.monthly_cost.toLocaleString()}원
+                            {e.years_later}년 후 · 월 {e.monthly_cost.toLocaleString('ko-KR')}원
                           </span>
                         </div>
                         <button onClick={() => removeEvent(i)} style={{
