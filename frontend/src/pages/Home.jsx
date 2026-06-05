@@ -39,10 +39,28 @@ export default function Home() {
         <h1 style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.35, marginBottom: 14 }}>
           나만의 노후 항로,<br />나로(NaRo)
         </h1>
-        <p style={{ fontSize: 15, opacity: 0.88, lineHeight: 1.8, marginBottom: 40, maxWidth: 320 }}>
-          재무 상태 × 생애 이벤트 × 소비 패턴을<br />
-          통합 분석한 초개인화 은퇴 준비 진단 서비스
+        <p style={{ fontSize: 15, opacity: 0.88, lineHeight: 1.8, marginBottom: 28, maxWidth: 320 }}>
+          재무 · 건강 · 여가활동 · 대인관계<br />
+          4대 영역 기반 초개인화 노후 준비 진단 서비스
         </p>
+
+        {/* 4대 영역 뱃지 */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {[
+            { icon: '💰', label: '재무' },
+            { icon: '❤️', label: '건강' },
+            { icon: '🌿', label: '여가활동' },
+            { icon: '🤝', label: '대인관계' },
+          ].map(({ icon, label }) => (
+            <div key={label} style={{
+              background: 'rgba(255,255,255,0.18)', borderRadius: 100,
+              padding: '6px 14px', fontSize: 13, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              <span>{icon}</span><span>{label}</span>
+            </div>
+          ))}
+        </div>
 
         <button
           onClick={handleStart}
@@ -56,7 +74,7 @@ export default function Home() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          은퇴 준비 진단 시작하기
+          노후 준비 진단 시작하기
           <span style={{ fontSize: 20 }}>→</span>
         </button>
 
