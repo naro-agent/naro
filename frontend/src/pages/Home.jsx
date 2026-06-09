@@ -11,7 +11,7 @@ export default function Home() {
     setDiagnosis(null);
     setSimulation(null);
     setRecommend(null);
-    navigate('/onboarding');
+    navigate('/consent');
   };
 
   return (

@@ -3,6 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { Landmark, PiggyBank, BarChart3, ShieldCheck, Building2, ChevronRight, Info } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { runRecommend } from '../api/apiClient.js';
+import { SURVEY_DATA } from '../data/surveyData.js';
+
+// surveyScores → 백엔드 DiagnosisResult 형태로 변환
+function buildDiagnosisFromSurvey(surveyScores, selectedAreas) {
+  if (!surveyScores) return null;
+  const areas = Object.keys(surveyScores);
+  const total = Math.round(
+    areas.reduce((s, a) => s + surveyScores[a], 0) / areas.length
+  );
+  const riskAreas = areas
+    .filter(a => surveyScores[a] < 60)
+    .map(a => SURVEY_DATA[a]?.label || a);
+  return {
+    total_score: total,
+    finance_score: surveyScores.finance ?? 0,
+    event_score: surveyScores.leisure ?? 0,
+    consumption_score: surveyScores.relation ?? 0,
+    health_score: surveyScores.health ?? 0,
+    asset_gap: 0,
+    monthly_shortfall: 0,
+    peer_comparison: '평균',
+    risk_areas: riskAreas,
+    summary: '',
+  };
+}
 
 const CATEGORY_ICON = {
   연금: Landmark, 저축: PiggyBank, 지출관리: BarChart3, 보험: ShieldCheck, 자산관리: Building2,
@@ -16,39 +41,30 @@ const BANK_COLOR = {
 
 export default function Recommend() {
   const navigate = useNavigate();
-  const { profile, diagnosis, recommend, setRecommend } = useAppContext();
+  const { profile, surveyScores, selectedAreas, recommend, setRecommend } = useAppContext();
   const [loading, setLoading] = useState(false);
 
+  // surveyScores를 백엔드 형태로 변환
+  const diagnosisPayload = buildDiagnosisFromSurvey(surveyScores, selectedAreas);
+
   useEffect(() => {
-    if (!profile || !diagnosis || recommend) return;
+    if (!profile || !diagnosisPayload || recommend) return;
     setLoading(true);
-    runRecommend(profile, diagnosis)
+    runRecommend(profile, diagnosisPayload)
       .then(d => setRecommend(d))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [profile, diagnosis]);
+  }, [profile, surveyScores]);
 
-  const needDiagnosis = profile && !diagnosis;
-
-  if (!profile) {
+  if (!profile || !surveyScores) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>프로필을 먼저 입력해주세요.</p>
-        <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
-          onClick={() => navigate('/')}>홈으로</button>
-      </div>
-    );
-  }
-
-  if (needDiagnosis) {
-    return (
-      <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-          추천을 받으려면 먼저 진단이 필요합니다.
+          먼저 노후 준비 진단 설문을 완료해주세요.
         </p>
         <button className="btn-primary" style={{ maxWidth: 240, margin: '0 auto', display: 'block' }}
-          onClick={() => navigate('/diagnosis')}>진단 받기 →</button>
+          onClick={() => navigate('/area-select')}>진단 시작하기 →</button>
       </div>
     );
   }
@@ -79,9 +95,9 @@ export default function Recommend() {
           <h2 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.4 }}>
             지금 바로 시작할 수 있는<br />우선순위 행동을 알려드립니다
           </h2>
-          {diagnosis && (
+          {diagnosisPayload && (
             <p style={{ opacity: 0.8, fontSize: 13, marginTop: 8 }}>
-              진단 점수 {diagnosis.total_score}점 기준 · 취약 영역: {diagnosis.risk_areas.join(', ') || '없음'}
+              종합 점수 {diagnosisPayload.total_score}점 기준 · 취약 영역: {diagnosisPayload.risk_areas.join(', ') || '없음'}
             </p>
           )}
         </div>

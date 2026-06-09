@@ -170,7 +170,7 @@ export default function Onboarding() {
     const { id, name, label, color, ...profile } = selectedPersona;
     resetAll();
     setProfile(profile);
-    navigate('/pre-diagnosis');
+    navigate('/survey');
   };
 
   const handleManualNext = () => {
@@ -193,7 +193,7 @@ export default function Onboarding() {
     };
     resetAll();
     setProfile(profile);
-    navigate('/pre-diagnosis');
+    navigate('/survey');
   };
 
   const canManualNext = () => finance.monthly_income && finance.monthly_expense;

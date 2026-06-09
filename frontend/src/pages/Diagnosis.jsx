@@ -4,65 +4,44 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip,
 } from 'recharts';
-import {
-  Wallet, Calendar, ShoppingCart, Heart, AlertTriangle, TrendingUp, TrendingDown, Minus,
-} from 'lucide-react';
+import { AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
-import { runDiagnosis } from '../api/apiClient.js';
+import { SURVEY_DATA, getInterpretation } from '../data/surveyData.js';
 
-const AREA_LABELS = {
-  finance_score: '재무',
-  event_score: '생애이벤트',
-  consumption_score: '소비패턴',
-  health_score: '건강',
+// 노후준비지원법 기준 동연령 평균 점수
+const PEER_AVG = {
+  finance:  61.9,
+  health:   76.0,
+  leisure:  60.3,
+  relation: 69.8,
 };
 
-const PEER_AVG = { '50': 52, '55': 58, '58': 61, '60': 63 };
+const AREA_HINTS = {
+  finance:  '연금·저축·자산 관리 강화',
+  health:   '건강검진·운동·식습관 개선',
+  leisure:  '여가활동 계획 수립',
+  relation: '사회활동·가족 교류 늘리기',
+};
 
 function getScoreColor(score) {
-  if (score >= 70) return 'var(--success)';
-  if (score >= 50) return 'var(--warning)';
+  if (score >= 80) return 'var(--success)';
+  if (score >= 60) return 'var(--warning)';
+  if (score >= 40) return '#FF8C00';
   return 'var(--danger)';
 }
 
-function getScoreLabel(score) {
-  if (score >= 70) return '양호';
-  if (score >= 50) return '보통';
-  return '위험';
-}
-
-function toKoreanUnit(num) {
-  if (!num || num === 0) return '0원';
-  const abs = Math.abs(num);
-  const sign = num < 0 ? '-' : '';
-  const uk = Math.floor(abs / 100000000);
-  const man = Math.floor((abs % 100000000) / 10000);
-  const parts = [];
-  if (uk > 0) parts.push(`${uk}억`);
-  if (man > 0) parts.push(`${man}만`);
-  return sign + (parts.length ? parts.join(' ') + '원' : abs.toLocaleString('ko-KR') + '원');
-}
-
-const AREA_HINTS = {
-  재무: '연금·저축 늘리기',
-  생애이벤트: '이벤트 자금 준비',
-  소비패턴: '지출 줄이기',
-  건강: '실손보험 점검',
-};
-
-function ScoreRing({ score }) {
+function ScoreRing({ score, color }) {
   const [displayed, setDisplayed] = useState(0);
   useEffect(() => {
-    let start = 0;
+    let cur = 0;
     const timer = setInterval(() => {
-      start += 2;
-      if (start >= score) { setDisplayed(score); clearInterval(timer); }
-      else setDisplayed(start);
+      cur += 2;
+      if (cur >= score) { setDisplayed(score); clearInterval(timer); }
+      else setDisplayed(cur);
     }, 20);
     return () => clearInterval(timer);
   }, [score]);
 
-  const color = getScoreColor(score);
   const circumference = 2 * Math.PI * 60;
   const offset = circumference - (displayed / 100) * circumference;
 
@@ -84,72 +63,49 @@ function ScoreRing({ score }) {
 
 export default function Diagnosis() {
   const navigate = useNavigate();
-  const { profile, diagnosis, setDiagnosis } = useAppContext();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { profile, surveyScores, selectedAreas } = useAppContext();
 
-  useEffect(() => {
-    if (!profile || diagnosis) return;
-    setLoading(true);
-    runDiagnosis(profile)
-      .then(d => { setDiagnosis(d); setError(''); })
-      .catch(() => setError('진단 중 오류가 발생했습니다. 다시 시도해 주세요.'))
-      .finally(() => setLoading(false));
-  }, [profile]);
-
-  if (!profile) {
+  if (!surveyScores || selectedAreas.length === 0) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>프로필을 먼저 입력해주세요.</p>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>설문을 먼저 완료해주세요.</p>
         <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
-          onClick={() => navigate('/')}>홈으로</button>
+          onClick={() => navigate('/area-select')}>진단 시작하기</button>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div style={{ padding: '80px 20px', textAlign: 'center' }}>
-        <div className="spinner" style={{ marginBottom: 20 }} />
-        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-          AI가 노후 준비 상태를 분석 중입니다.<br />잠시만 기다려주세요...
-        </p>
-      </div>
-    );
-  }
+  // 선택 영역만 처리
+  const areas = ['finance', 'health', 'leisure', 'relation'].filter(a => selectedAreas.includes(a));
+  const scores = areas.map(a => surveyScores[a] ?? 0);
 
-  if (error) {
-    return (
-      <div style={{ padding: 40, textAlign: 'center' }}>
-        <p style={{ color: 'var(--danger)', marginBottom: 20 }}>{error}</p>
-        <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
-          onClick={() => { setError(''); setDiagnosis(null); }}>다시 시도</button>
-      </div>
-    );
-  }
+  // 종합 점수: 선택 영역 평균
+  const totalScore = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
 
-  if (!diagnosis) return null;
+  // 동연령 평균 종합 (선택 영역 평균)
+  const peerTotal = Math.round(
+    areas.reduce((s, a) => s + PEER_AVG[a], 0) / areas.length * 10
+  ) / 10;
+  const diff = Math.round((totalScore - peerTotal) * 10) / 10;
 
-  const radarData = Object.entries(AREA_LABELS).map(([key, label]) => ({
-    subject: label, score: diagnosis[key], fullMark: 100,
+  // 취약 영역 (60점 미만)
+  const riskAreas = areas.filter(a => surveyScores[a] < 60);
+
+  // 레이더 데이터
+  const radarData = areas.map(a => ({
+    subject: SURVEY_DATA[a].label,
+    score: surveyScores[a],
+    peer: PEER_AVG[a],
+    fullMark: 100,
   }));
 
-  const peerAge = String(Math.min(60, Math.floor(profile.age / 5) * 5));
-  const peerScore = PEER_AVG[peerAge] || 58;
-  const diff = diagnosis.total_score - peerScore;
-
-  const areaDetails = [
-    { key: 'finance_score', label: '재무', Icon: Wallet, desc: '자산·연금·저축률' },
-    { key: 'event_score', label: '생애이벤트', Icon: Calendar, desc: '이벤트 대비 현금흐름' },
-    { key: 'consumption_score', label: '소비패턴', Icon: ShoppingCart, desc: '지출 구조·저축 여력' },
-    { key: 'health_score', label: '건강', Icon: Heart, desc: '의료비 리스크' },
-  ];
+  const totalInterp = getInterpretation(totalScore);
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh' }}>
       <div className="app-header">
         <button className="back-btn" onClick={() => navigate('/dashboard')}>‹</button>
-        <span className="header-title">은퇴 준비 진단</span>
+        <span className="header-title">노후 준비 진단 결과</span>
         <div className="header-right" />
       </div>
 
@@ -158,113 +114,130 @@ export default function Diagnosis() {
         {/* ① 종합 점수 카드 */}
         <div className="card-primary" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <ScoreRing score={diagnosis.total_score} />
+            <ScoreRing score={totalScore} />
             <div style={{ flex: 1 }}>
-              <p style={{ opacity: 0.8, fontSize: 13, marginBottom: 6 }}>종합 은퇴 준비 점수</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <p style={{ opacity: 0.8, fontSize: 13, marginBottom: 4 }}>종합 노후 준비 점수</p>
+              <div style={{
+                display: 'inline-block',
+                background: 'rgba(255,255,255,0.2)', borderRadius: 100,
+                padding: '3px 12px', fontSize: 13, fontWeight: 700, marginBottom: 10,
+              }}>
+                {totalInterp.label}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 {diff > 0
-                  ? <TrendingUp size={16} color="#fff" />
+                  ? <TrendingUp size={14} color="#fff" />
                   : diff < 0
-                    ? <TrendingDown size={16} color="rgba(255,255,255,0.7)" />
-                    : <Minus size={16} color="rgba(255,255,255,0.7)" />
+                    ? <TrendingDown size={14} color="rgba(255,255,255,0.7)" />
+                    : <Minus size={14} color="rgba(255,255,255,0.7)" />
                 }
-                <span style={{ fontSize: 13, opacity: 0.9 }}>
-                  동연령 평균보다 {diff >= 0 ? '+' : ''}{diff}점
+                <span style={{ fontSize: 12, opacity: 0.9 }}>
+                  동연령 평균({peerTotal}점)보다 {diff >= 0 ? '+' : ''}{diff}점
                 </span>
               </div>
-              {/* 동연령 비교 게이지 */}
-              <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 4 }}>
-                동연령 평균 {peerScore}점
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 100, height: 8, width: '100%', overflow: 'hidden' }}>
+              <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 100, height: 8, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: 100, background: '#fff',
-                  width: `${diagnosis.total_score}%`, transition: 'width 0.8s ease',
+                  width: `${totalScore}%`, transition: 'width 0.8s ease',
                 }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.65, marginTop: 3 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.6, marginTop: 3 }}>
                 <span>0</span><span>50</span><span>100</span>
               </div>
             </div>
           </div>
+
+          {/* 해석 문구 */}
+          <div style={{
+            marginTop: 16, background: 'rgba(255,255,255,0.15)',
+            borderRadius: 10, padding: '10px 14px',
+            fontSize: 13, lineHeight: 1.6, opacity: 0.95,
+          }}>
+            {totalInterp.desc}
+          </div>
         </div>
 
-        {/* ② 핵심 수치 2개 */}
+        {/* ② 영역별 점수 카드 (2열 그리드) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-          <div className="card" style={{ textAlign: 'center', padding: '18px 12px' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>매달 부족한 금액</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: diagnosis.monthly_shortfall > 0 ? 'var(--danger)' : 'var(--success)', lineHeight: 1.1 }}>
-              {diagnosis.monthly_shortfall > 0 ? '-' : ''}{toKoreanUnit(Math.abs(diagnosis.monthly_shortfall))}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 4 }}>
-              월 {Math.abs(diagnosis.monthly_shortfall).toLocaleString('ko-KR')}원
-            </div>
-          </div>
-          <div className="card" style={{ textAlign: 'center', padding: '18px 12px' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>총 자산 부족분</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: diagnosis.asset_gap > 0 ? 'var(--danger)' : 'var(--success)', lineHeight: 1.1 }}>
-              {diagnosis.asset_gap > 0 ? '-' : ''}{toKoreanUnit(Math.abs(diagnosis.asset_gap))}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 4 }}>
-              {Math.abs(diagnosis.asset_gap).toLocaleString('ko-KR')}원
-            </div>
-          </div>
+          {areas.map(areaId => {
+            const area = SURVEY_DATA[areaId];
+            const score = surveyScores[areaId];
+            const interp = getInterpretation(score);
+            const peer = PEER_AVG[areaId];
+            const d = Math.round((score - peer) * 10) / 10;
+            const isRisk = score < 60;
+            return (
+              <div key={areaId} className="card" style={{
+                padding: '16px 14px',
+                border: isRisk ? `1.5px solid ${interp.color}` : '1.5px solid var(--border)',
+              }}>
+                <div style={{ fontSize: 22, marginBottom: 6 }}>{area.icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: 'var(--text-primary)' }}>
+                  {area.label}
+                </div>
+                <div style={{ fontSize: 26, fontWeight: 700, color: interp.color, lineHeight: 1 }}>
+                  {score}
+                  <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)', marginLeft: 2 }}>점</span>
+                </div>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: interp.color,
+                  background: interp.color + '18', borderRadius: 100,
+                  padding: '2px 8px', display: 'inline-block', marginTop: 4, marginBottom: 8,
+                }}>
+                  {interp.label}
+                </div>
+                {/* 점수 바 */}
+                <div style={{ background: 'var(--bg-section)', borderRadius: 100, height: 6, overflow: 'hidden', marginBottom: 6 }}>
+                  <div style={{
+                    height: '100%', borderRadius: 100,
+                    background: interp.color, width: `${score}%`,
+                    transition: 'width 0.8s ease',
+                  }} />
+                </div>
+                {/* 동연령 평균 비교 */}
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                  평균 {peer}점 대비 <span style={{ color: d >= 0 ? 'var(--success)' : 'var(--danger)', fontWeight: 700 }}>
+                    {d >= 0 ? '+' : ''}{d}점
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* ③ 4개 영역 — 레이더 + 점수 바 통합 */}
+        {/* ③ 레이더 차트 */}
         <div className="card" style={{ marginBottom: 16 }}>
-          <h3 className="section-title" style={{ marginBottom: 4 }}>4개 영역 분석</h3>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
-            70점 이상 <span style={{ color: 'var(--success)', fontWeight: 700 }}>●</span> 양호 &nbsp;
-            50~69점 <span style={{ color: 'var(--warning)', fontWeight: 700 }}>●</span> 보통 &nbsp;
-            50점 미만 <span style={{ color: 'var(--danger)', fontWeight: 700 }}>●</span> 위험
+          <h3 className="section-title" style={{ marginBottom: 4 }}>영역별 분석</h3>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
+            80점↑ <span style={{ color: 'var(--success)', fontWeight: 700 }}>●</span> 양호 &nbsp;
+            60~79 <span style={{ color: 'var(--warning)', fontWeight: 700 }}>●</span> 보통 &nbsp;
+            40~59 <span style={{ color: '#FF8C00', fontWeight: 700 }}>●</span> 미흡 &nbsp;
+            40↓ <span style={{ color: 'var(--danger)', fontWeight: 700 }}>●</span> 위험
           </p>
-
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={radarData}>
               <PolarGrid stroke="var(--border)" />
               <PolarAngleAxis dataKey="subject" tick={{ fontSize: 13, fill: 'var(--text-primary)', fontWeight: 600 }} />
               <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="점수" dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.2} strokeWidth={2} />
-              <Tooltip formatter={v => [v + '점']} />
+              <Radar name="내 점수" dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.25} strokeWidth={2.5} />
+              <Radar name="동연령 평균" dataKey="peer" stroke="var(--text-hint)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 3" />
+              <Tooltip formatter={(v, name) => [v + '점', name]} />
             </RadarChart>
           </ResponsiveContainer>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
-            {areaDetails.map(({ key, label, Icon, desc }) => {
-              const score = diagnosis[key];
-              const color = getScoreColor(score);
-              const isRisk = diagnosis.risk_areas.includes(label);
-              return (
-                <div key={key}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <div style={{ width: 30, height: 30, background: color + '18', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Icon size={15} color={color} strokeWidth={1.8} />
-                    </div>
-                    <span style={{ fontWeight: 700, fontSize: 14, flex: 1 }}>{label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color, minWidth: 48, textAlign: 'right' }}>
-                      {score}점 <span style={{ fontSize: 11, fontWeight: 400 }}>({getScoreLabel(score)})</span>
-                    </span>
-                  </div>
-                  <div className="progress-bar" style={{ height: 10 }}>
-                    <div className="fill" style={{ width: `${score}%`, background: color, borderRadius: 100 }} />
-                  </div>
-                  {isRisk && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5 }}>
-                      <AlertTriangle size={12} color="var(--danger)" strokeWidth={2} />
-                      <span style={{ fontSize: 12, color: 'var(--danger)' }}>
-                        취약 — {AREA_HINTS[label]}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 16, height: 3, background: 'var(--primary)', borderRadius: 2 }} />
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>내 점수</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 16, height: 2, background: 'var(--text-hint)', borderRadius: 2, borderTop: '1px dashed var(--text-hint)' }} />
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>동연령 평균</span>
+            </div>
           </div>
         </div>
 
-        {/* ④ 지금 당장 할 일 (취약 영역 기반) */}
-        {diagnosis.risk_areas.length > 0 && (
+        {/* ④ 취약 영역 — 지금 바로 챙겨야 할 것 */}
+        {riskAreas.length > 0 && (
           <div className="card" style={{ marginBottom: 16, border: '1.5px solid var(--danger)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <AlertTriangle size={18} color="var(--danger)" strokeWidth={2} />
@@ -273,26 +246,64 @@ export default function Diagnosis() {
               </h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {diagnosis.risk_areas.map((area, i) => (
-                <div key={area} style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--bg-section)', borderRadius: 10, padding: '12px 14px',
-                }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: '50%',
-                    background: 'var(--danger)', color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 700, flexShrink: 0,
-                  }}>{i + 1}</div>
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{area} </span>
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>→ {AREA_HINTS[area]}</span>
+              {riskAreas.map((areaId, i) => {
+                const area = SURVEY_DATA[areaId];
+                return (
+                  <div key={areaId} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: 'var(--bg-section)', borderRadius: 10, padding: '12px 14px',
+                  }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%',
+                      background: 'var(--danger)', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, fontWeight: 700, flexShrink: 0,
+                    }}>{i + 1}</div>
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>{area.icon}</span>
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {area.label} ({surveyScores[areaId]}점)
+                      </span>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                        → {AREA_HINTS[areaId]}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
+
+        {/* ⑤ 점수 기준 안내 */}
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h3 className="section-title" style={{ marginBottom: 10 }}>점수 기준</h3>
+          {[
+            { range: '80~100점', label: '양호', color: 'var(--success)', desc: '현재 습관과 계획을 유지하면서 세부 실행계획 보완' },
+            { range: '60~79점', label: '보통', color: 'var(--warning)', desc: '기본 준비는 되어 있으나 구체성 부족 — 낮은 문항 우선 보완' },
+            { range: '40~59점', label: '미흡', color: '#FF8C00', desc: '준비가 부분적 — 점검, 계획 수립, 정보 탐색 필요' },
+            { range: '0~39점',  label: '위험', color: 'var(--danger)', desc: '준비가 취약 — 우선순위를 정해 실천 목표 수립 필요' },
+          ].map(item => (
+            <div key={item.label} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '8px 0',
+              borderBottom: item.label !== '위험' ? '1px solid var(--border)' : 'none',
+            }}>
+              <div style={{
+                minWidth: 56, fontSize: 11, fontWeight: 700,
+                color: item.color, background: item.color + '18',
+                borderRadius: 100, padding: '3px 8px', textAlign: 'center',
+              }}>{item.label}</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{item.range}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+          <p style={{ fontSize: 10, color: 'var(--text-hint)', marginTop: 10, lineHeight: 1.6 }}>
+            기준: 2024년 노후준비실태조사 및 진단지표 세부화 방안 연구 (국민연금공단)
+          </p>
+        </div>
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
           <button className="btn-secondary" style={{ flex: 1 }} onClick={() => navigate('/simulation')}>
