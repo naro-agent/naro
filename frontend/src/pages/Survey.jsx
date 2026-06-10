@@ -7,8 +7,8 @@ export default function Survey() {
   const navigate = useNavigate();
   const { selectedAreas, setSurveyScores } = useAppContext();
 
-  // 선택된 영역만, AREA_ORDER 순서대로 정렬
-  const areas = AREA_ORDER.filter(a => selectedAreas.includes(a));
+  // 기본사항 먼저, 이후 선택된 영역 순서대로
+  const areas = ['basic', ...AREA_ORDER.filter(a => selectedAreas.includes(a))];
 
   // 전체 문항 목록 생성 (영역 순서대로 평탄화)
   const allQuestions = areas.flatMap(areaId =>
@@ -39,7 +39,7 @@ export default function Survey() {
     setAnswers(newAnswers);
 
     if (isLast) {
-      // 영역별 합산
+      // 영역별 합산 (기본사항 포함)
       const scores = {};
       areas.forEach(areaId => {
         const areaQuestions = SURVEY_DATA[areaId].questions;
@@ -146,7 +146,7 @@ export default function Survey() {
                 key={opt.score}
                 onClick={() => handleSelect(opt.score)}
                 style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 14,
+                  display: 'flex', alignItems: 'center', gap: 14,
                   background: isSelected ? currentArea.color + '12' : 'var(--bg-card)',
                   border: `1.5px solid ${isSelected ? currentArea.color : 'var(--border)'}`,
                   borderRadius: 14, padding: '14px 16px',
@@ -160,7 +160,7 @@ export default function Survey() {
                   color: isSelected ? '#fff' : 'var(--text-secondary)',
                   fontSize: 13, fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, marginTop: 1,
+                  flexShrink: 0,
                 }}>
                   {idx + 1}
                 </div>

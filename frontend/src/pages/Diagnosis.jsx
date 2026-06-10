@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  ResponsiveContainer, Tooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
+  ResponsiveContainer, Tooltip, LabelList,
 } from 'recharts';
 import { AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
@@ -205,35 +206,81 @@ export default function Diagnosis() {
           })}
         </div>
 
-        {/* ③ 레이더 차트 */}
+        {/* ③ 영역별 분석 차트 */}
         <div className="card" style={{ marginBottom: 16 }}>
           <h3 className="section-title" style={{ marginBottom: 4 }}>영역별 분석</h3>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
             80점↑ <span style={{ color: 'var(--success)', fontWeight: 700 }}>●</span> 양호 &nbsp;
             60~79 <span style={{ color: 'var(--warning)', fontWeight: 700 }}>●</span> 보통 &nbsp;
             40~59 <span style={{ color: '#FF8C00', fontWeight: 700 }}>●</span> 미흡 &nbsp;
             40↓ <span style={{ color: 'var(--danger)', fontWeight: 700 }}>●</span> 위험
           </p>
-          <ResponsiveContainer width="100%" height={220}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="var(--border)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 13, fill: 'var(--text-primary)', fontWeight: 600 }} />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="내 점수" dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.25} strokeWidth={2.5} />
-              <Radar name="동연령 평균" dataKey="peer" stroke="var(--text-hint)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 3" />
-              <Tooltip formatter={(v, name) => [v + '점', name]} />
-            </RadarChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 16, height: 3, background: 'var(--primary)', borderRadius: 2 }} />
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>내 점수</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 16, height: 2, background: 'var(--text-hint)', borderRadius: 2, borderTop: '1px dashed var(--text-hint)' }} />
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>동연령 평균</span>
-            </div>
-          </div>
+
+          {/* 3~4개: 레이더 차트 */}
+          {areas.length >= 3 && (
+            <>
+              <ResponsiveContainer width="100%" height={220}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 13, fill: 'var(--text-primary)', fontWeight: 600 }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="내 점수" dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.25} strokeWidth={2.5} />
+                  <Radar name="동연령 평균" dataKey="peer" stroke="var(--text-hint)" fill="transparent" strokeWidth={1.5} strokeDasharray="4 3" />
+                  <Tooltip formatter={(v, name) => [v + '점', name]} />
+                </RadarChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 16, height: 3, background: 'var(--primary)', borderRadius: 2 }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>내 점수</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 16, height: 2, background: 'var(--text-hint)', borderRadius: 2, borderTop: '1px dashed var(--text-hint)' }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>동연령 평균</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 1~2개: 수평 바 차트 */}
+          {areas.length <= 2 && (
+            <>
+              <ResponsiveContainer width="100%" height={areas.length === 1 ? 100 : 160}>
+                <BarChart
+                  data={radarData}
+                  layout="vertical"
+                  margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
+                  barCategoryGap="30%"
+                >
+                  <CartesianGrid horizontal={false} stroke="var(--border)" />
+                  <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} tickCount={6} />
+                  <YAxis type="category" dataKey="subject" width={56} tick={{ fontSize: 13, fontWeight: 600, fill: 'var(--text-primary)' }} />
+                  <Tooltip formatter={(v, name) => [v + '점', name]} />
+                  {/* 동연령 평균 */}
+                  <Bar dataKey="peer" name="동연령 평균" fill="var(--border)" radius={[0, 4, 4, 0]}>
+                    <LabelList dataKey="peer" position="right" formatter={v => v + '점'} style={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
+                  </Bar>
+                  {/* 내 점수 */}
+                  <Bar dataKey="score" name="내 점수" radius={[0, 4, 4, 0]}>
+                    {radarData.map((entry, i) => (
+                      <Cell key={i} fill={getScoreColor(entry.score)} fillOpacity={0.85} />
+                    ))}
+                    <LabelList dataKey="score" position="right" formatter={v => v + '점'} style={{ fontSize: 12, fontWeight: 700, fill: 'var(--text-primary)' }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 14, height: 10, background: 'var(--primary)', borderRadius: 2, opacity: 0.85 }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>내 점수</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 14, height: 10, background: 'var(--border)', borderRadius: 2 }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>동연령 평균</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ④ 취약 영역 — 지금 바로 챙겨야 할 것 */}

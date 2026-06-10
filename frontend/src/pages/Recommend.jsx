@@ -43,6 +43,7 @@ export default function Recommend() {
   const navigate = useNavigate();
   const { profile, surveyScores, selectedAreas, recommend, setRecommend } = useAppContext();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // surveyScores를 백엔드 형태로 변환
   const diagnosisPayload = buildDiagnosisFromSurvey(surveyScores, selectedAreas);
@@ -50,9 +51,10 @@ export default function Recommend() {
   useEffect(() => {
     if (!profile || !diagnosisPayload || recommend) return;
     setLoading(true);
-    runRecommend(profile, diagnosisPayload)
+    setError(null);
+    runRecommend(profile, diagnosisPayload, surveyScores)
       .then(d => setRecommend(d))
-      .catch(console.error)
+      .catch(e => setError(e?.message || '서버 연결에 실패했습니다.'))
       .finally(() => setLoading(false));
   }, [profile, surveyScores]);
 
@@ -74,6 +76,18 @@ export default function Recommend() {
       <div style={{ padding: '80px 20px', textAlign: 'center' }}>
         <div className="spinner" style={{ marginBottom: 20 }} />
         <p style={{ color: 'var(--text-secondary)' }}>맞춤 추천을 생성 중입니다...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <p style={{ fontWeight: 700, marginBottom: 8 }}>추천 생성 실패</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>{error}</p>
+        <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
+          onClick={() => { setError(null); setRecommend(null); }}>다시 시도</button>
       </div>
     );
   }
@@ -148,21 +162,59 @@ export default function Recommend() {
           <>
             <h3 className="section-title" style={{ marginTop: 8, marginBottom: 12 }}>JB금융 맞춤 상품</h3>
             {recommend.products.map((prod, i) => (
-              <div key={i} className="card" style={{ marginBottom: 10 }}>
+              <div key={i} className="card" style={{
+                marginBottom: 10,
+                border: prod.is_virtual ? '1.5px dashed #F5A623' : '1.5px solid var(--border)',
+              }}>
+                {/* 상단: 은행 뱃지 + 가상상품 마크 + 금리 */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                     <span style={{
-                      fontSize: 11, fontWeight: 700, background: (BANK_COLOR[prod.bank] || 'var(--primary)') + '22',
+                      fontSize: 11, fontWeight: 700,
+                      background: (BANK_COLOR[prod.bank] || 'var(--primary)') + '22',
                       color: BANK_COLOR[prod.bank] || 'var(--primary)',
-                      padding: '2px 8px', borderRadius: 100, marginRight: 8,
+                      padding: '2px 8px', borderRadius: 100,
                     }}>{prod.bank}</span>
                     <span className="badge" style={{ fontSize: 11 }}>{prod.type}</span>
+                    {prod.area && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 600,
+                        background: '#F0F5FF', color: 'var(--primary)',
+                        padding: '2px 8px', borderRadius: 100,
+                      }}>{prod.area}</span>
+                    )}
+                    {prod.is_virtual && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 700,
+                        background: '#FFF3CD', color: '#B8690A',
+                        padding: '2px 10px', borderRadius: 100,
+                        border: '1px solid #F5A623',
+                        display: 'flex', alignItems: 'center', gap: 3,
+                      }}>⚠️ 가상 상품</span>
+                    )}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)' }}>{prod.rate}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', flexShrink: 0 }}>{prod.rate}</span>
                 </div>
+
                 <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{prod.name}</h4>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>{prod.description}</p>
-                <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600 }}>💡 {prod.reason}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.6 }}>
+                  {prod.description}
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: prod.is_virtual ? 8 : 0 }}>
+                  💡 {prod.reason}
+                </p>
+
+                {/* 가상 상품 안내 문구 */}
+                {prod.is_virtual && (
+                  <div style={{
+                    background: '#FFFBF0', border: '1px solid #F5A623',
+                    borderRadius: 8, padding: '8px 12px',
+                    fontSize: 11, color: '#8A5A00', lineHeight: 1.6,
+                  }}>
+                    ⚠️ 이 상품은 현재 출시되지 않은 <strong>기획 단계 가상 상품</strong>입니다.
+                    유사한 상품이 타 금융사에 존재할 수 있으며, JB금융그룹 출시 시 안내해 드립니다.
+                  </div>
+                )}
               </div>
             ))}
           </>

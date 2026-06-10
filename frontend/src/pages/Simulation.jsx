@@ -60,19 +60,22 @@ export default function Simulation() {
   const navigate = useNavigate();
   const { profile, simulation, setSimulation } = useAppContext();
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
 
   useEffect(() => {
     if (!profile || simulation) return;
     setLoading(true);
+    setError(null);
     runSimulation(profile)
       .then(d => setSimulation(d))
-      .catch(console.error)
+      .catch(e => setError(e?.message || '서버 연결에 실패했습니다.'))
       .finally(() => setLoading(false));
   }, [profile]);
 
   if (!profile) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>프로필을 먼저 입력해주세요.</p>
         <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
           onClick={() => navigate('/')}>홈으로</button>
@@ -87,6 +90,18 @@ export default function Simulation() {
         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
           경제 지표를 반영해<br />현금흐름을 계산 중입니다...
         </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <p style={{ fontWeight: 700, marginBottom: 8 }}>시뮬레이션 생성 실패</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>{error}</p>
+        <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
+          onClick={() => { setError(null); setSimulation(null); }}>다시 시도</button>
       </div>
     );
   }

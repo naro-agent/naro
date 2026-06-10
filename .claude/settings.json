@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/tree0/OneDrive -name \"CLAUDE.md\" -o -name \"claude.md\" 2>/dev/null | head -5)",
+      "Read(//c/Users/tree0/OneDrive/**)"
+    ]
+  }
+}

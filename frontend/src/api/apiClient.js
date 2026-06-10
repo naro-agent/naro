@@ -15,8 +15,8 @@ export const runDiagnosis = (profile) =>
 export const runSimulation = (profile) =>
   client.post('/simulation', { profile }).then(r => r.data);
 
-export const runRecommend = (profile, diagnosis) =>
-  client.post('/recommend', { profile, diagnosis }).then(r => r.data);
+export const runRecommend = (profile, diagnosis, survey_scores) =>
+  client.post('/recommend', { profile, diagnosis, survey_scores }).then(r => r.data);
 
 export const sendChat = (message, profile, diagnosis, history, mode = 'free') =>
   client.post('/chat', { message, profile, diagnosis, history, mode }).then(r => r.data);
