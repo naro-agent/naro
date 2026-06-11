@@ -1,0 +1,33 @@
+cmd: python src/models/train.py
+deps:
+- path: data/processed/naro_features.csv
+  hash: md5
+  md5: 774fa8107a312a3bfe2d440b6c84a671
+  size: 1683522
+- path: src/models/train.py
+  hash: md5
+  md5: 00fc9a8bd86961b647c66be977faedcc
+  size: 5585
+params:
+  params.yaml:
+    train:
+      random_state: 42
+      cv_folds: 5
+      xgb_n_estimators: 300
+      xgb_max_depth: 6
+      xgb_learning_rate: 0.05
+      xgb_subsample: 0.8
+      xgb_colsample_bytree: 0.8
+      rf_n_estimators: 200
+      rf_max_depth: 10
+      rf_min_samples_leaf: 5
+outs:
+- path: models/
+  hash: md5
+  md5: 345ca0187d282c2129fa08605f103a02.dir
+  size: 13264689
+  nfiles: 4
+- path: reports/model_performance.csv
+  hash: md5
+  md5: 639a4a24596c7f2af28a95a53a397e65
+  size: 438

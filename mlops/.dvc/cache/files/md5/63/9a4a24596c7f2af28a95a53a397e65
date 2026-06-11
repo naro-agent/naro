@@ -1,0 +1,9 @@
+target,model,mae_mean,mae_std,r2_mean,r2_std
+finance_score,XGBoost,2.994,0.074,0.75,0.011
+finance_score,RandomForest,2.599,0.066,0.764,0.011
+health_score,XGBoost,8.42,0.19,0.53,0.024
+health_score,RandomForest,8.714,0.194,0.501,0.021
+leisure_score,XGBoost,7.563,0.05,0.212,0.023
+leisure_score,RandomForest,7.573,0.055,0.205,0.02
+relation_score,XGBoost,10.784,0.108,0.317,0.015
+relation_score,RandomForest,11.179,0.171,0.269,0.014

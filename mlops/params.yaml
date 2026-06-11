@@ -1,0 +1,31 @@
+features:
+  # 10차 응답자 필터 기준
+  wave: 10
+  # 이상치 클리핑 분위수
+  clip_lower: 0.01
+  clip_upper: 0.99
+  # 여가활동 일수 정규화 상한 분위수
+  leisure_days_quantile: 0.90
+  # 사회활동 횟수 정규화 상한 분위수
+  social_count_quantile: 0.90
+
+train:
+  # 공통
+  random_state: 42
+  cv_folds: 5
+  # XGBoost
+  xgb_n_estimators: 300
+  xgb_max_depth: 6
+  xgb_learning_rate: 0.05
+  xgb_subsample: 0.8
+  xgb_colsample_bytree: 0.8
+  # RandomForest
+  rf_n_estimators: 200
+  rf_max_depth: 10
+  rf_min_samples_leaf: 5
+
+explain:
+  # SHAP 계산에 사용할 최대 샘플 수
+  sample_n: 2000
+  # 시각화에 표시할 상위 피처 수
+  top_n: 15

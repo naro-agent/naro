@@ -1,0 +1,46 @@
+stages:
+  featurize:
+    cmd: python src/features/build_features.py
+    deps:
+      - src/features/build_features.py
+      - data/raw/
+    params:
+      - features
+    outs:
+      - data/processed/naro_features.csv
+      - data/processed/feature_summary.csv
+      - data/processed/target_distribution.csv
+
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - src/models/train.py
+      - data/processed/naro_features.csv
+    params:
+      - train
+    outs:
+      - models/
+    metrics:
+      - reports/model_performance.csv:
+          cache: false
+
+  explain:
+    cmd: python src/explain/shap_explain.py
+    deps:
+      - src/explain/shap_explain.py
+      - models/
+      - data/processed/naro_features.csv
+    params:
+      - explain
+    outs:
+      - reports/shap_finance_score_summary.png
+      - reports/shap_finance_score_bar.png
+      - reports/shap_health_score_summary.png
+      - reports/shap_health_score_bar.png
+      - reports/shap_leisure_score_summary.png
+      - reports/shap_leisure_score_bar.png
+      - reports/shap_relation_score_summary.png
+      - reports/shap_relation_score_bar.png
+    metrics:
+      - reports/shap_importance.csv:
+          cache: false

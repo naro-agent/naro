@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(find /c/Users/tree0/OneDrive -name \"CLAUDE.md\" -o -name \"claude.md\" 2>/dev/null | head -5)",
-      "Read(//c/Users/tree0/OneDrive/**)"
+      "Read(//c/Users/tree0/OneDrive/**)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s -X POST http://localhost:8000/api/recommend -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(pkill -f uvicorn)",
+      "Bash(python src/features/build_features.py)",
+      "Bash(pip install *)",
+      "Bash(python -c \"import xgboost, sklearn, joblib; print\\('xgboost:', xgboost.__version__, '/ sklearn:', sklearn.__version__\\)\")",
+      "Bash(python src/models/train.py)",
+      "Bash(python -c \"import shap; print\\('shap:', shap.__version__\\)\")",
+      "Read(//c/c/Users/tree0/OneDrive/바탕 화면/행복한 석사생활/프로젝트/JB금융그룹_AI_Challenge/naro/mlops/**)",
+      "Bash(tasklist)",
+      "Bash(taskkill /F /IM python.exe)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)"
     ]
   }
 }

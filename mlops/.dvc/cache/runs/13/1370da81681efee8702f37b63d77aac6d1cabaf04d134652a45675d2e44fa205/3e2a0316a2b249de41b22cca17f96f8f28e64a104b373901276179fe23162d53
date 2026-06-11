@@ -1,0 +1,57 @@
+cmd: python src/explain/shap_explain.py
+deps:
+- path: data/processed/naro_features.csv
+  hash: md5
+  md5: 774fa8107a312a3bfe2d440b6c84a671
+  size: 1683522
+- path: models/
+  hash: md5
+  md5: 345ca0187d282c2129fa08605f103a02.dir
+  size: 13264689
+  nfiles: 4
+- path: src/explain/shap_explain.py
+  hash: md5
+  md5: 295487c466bfec94f4b0e77e076fb518
+  size: 8209
+params:
+  params.yaml:
+    explain:
+      sample_n: 2000
+      top_n: 15
+outs:
+- path: reports/shap_finance_score_bar.png
+  hash: md5
+  md5: 87002846f0160fdb8cb676e10f8cd908
+  size: 43562
+- path: reports/shap_finance_score_summary.png
+  hash: md5
+  md5: ddbaf89be5cd937c9ba7aec4787bb39f
+  size: 135585
+- path: reports/shap_health_score_bar.png
+  hash: md5
+  md5: 146301af332aaec4cb84e1df54a319ec
+  size: 43640
+- path: reports/shap_health_score_summary.png
+  hash: md5
+  md5: 3190f89905f546ed01a7158f555f074b
+  size: 170136
+- path: reports/shap_importance.csv
+  hash: md5
+  md5: e517b39290002a7b47cc22906875a640
+  size: 6529
+- path: reports/shap_leisure_score_bar.png
+  hash: md5
+  md5: 57176ca0e522e37ebe385dc75e7c94d8
+  size: 43923
+- path: reports/shap_leisure_score_summary.png
+  hash: md5
+  md5: bf37333a56fd68fc794c432f451d077c
+  size: 187982
+- path: reports/shap_relation_score_bar.png
+  hash: md5
+  md5: 759b3aad68924c537472e6aaa44288ef
+  size: 42387
+- path: reports/shap_relation_score_summary.png
+  hash: md5
+  md5: b197af7a0e9b47b18e9c2686025fb5f2
+  size: 204773

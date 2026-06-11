@@ -1,0 +1,17 @@
+# DVC 추적 제외 패턴
+
+# Python 캐시
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Jupyter 체크포인트
+**/.ipynb_checkpoints/
+
+# 임시 파일
+**/*.tmp
+**/*.log
+
+# OS 파일
+.DS_Store
+Thumbs.db

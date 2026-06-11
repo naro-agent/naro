@@ -1,0 +1,32 @@
+cmd: python src/features/build_features.py
+deps:
+- path: data/raw/
+  hash: md5
+  md5: a1d49bb82477f06f9d3c823fcb335327.dir
+  size: 380089519
+  nfiles: 7
+- path: src/features/build_features.py
+  hash: md5
+  md5: 09d840b4a34570f5ee8dbd27df1d8688
+  size: 15664
+params:
+  params.yaml:
+    features:
+      wave: 10
+      clip_lower: 0.01
+      clip_upper: 0.99
+      leisure_days_quantile: 0.9
+      social_count_quantile: 0.9
+outs:
+- path: data/processed/feature_summary.csv
+  hash: md5
+  md5: 5ca60482c6c8e4ea9b78c843a25501b9
+  size: 1404
+- path: data/processed/naro_features.csv
+  hash: md5
+  md5: 774fa8107a312a3bfe2d440b6c84a671
+  size: 1683522
+- path: data/processed/target_distribution.csv
+  hash: md5
+  md5: 833e12fde42678bc5610307a56df0534
+  size: 396

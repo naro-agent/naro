@@ -1,0 +1,127 @@
+schema: '2.0'
+stages:
+  featurize:
+    cmd: python src/features/build_features.py
+    deps:
+    - path: data/raw/
+      hash: md5
+      md5: a1d49bb82477f06f9d3c823fcb335327.dir
+      size: 380089519
+      nfiles: 7
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 09d840b4a34570f5ee8dbd27df1d8688
+      size: 15664
+    params:
+      params.yaml:
+        features:
+          wave: 10
+          clip_lower: 0.01
+          clip_upper: 0.99
+          leisure_days_quantile: 0.9
+          social_count_quantile: 0.9
+    outs:
+    - path: data/processed/feature_summary.csv
+      hash: md5
+      md5: 5ca60482c6c8e4ea9b78c843a25501b9
+      size: 1404
+    - path: data/processed/naro_features.csv
+      hash: md5
+      md5: 774fa8107a312a3bfe2d440b6c84a671
+      size: 1683522
+    - path: data/processed/target_distribution.csv
+      hash: md5
+      md5: 833e12fde42678bc5610307a56df0534
+      size: 396
+  train:
+    cmd: python src/models/train.py
+    deps:
+    - path: data/processed/naro_features.csv
+      hash: md5
+      md5: 774fa8107a312a3bfe2d440b6c84a671
+      size: 1683522
+    - path: src/models/train.py
+      hash: md5
+      md5: 00fc9a8bd86961b647c66be977faedcc
+      size: 5585
+    params:
+      params.yaml:
+        train:
+          random_state: 42
+          cv_folds: 5
+          xgb_n_estimators: 300
+          xgb_max_depth: 6
+          xgb_learning_rate: 0.05
+          xgb_subsample: 0.8
+          xgb_colsample_bytree: 0.8
+          rf_n_estimators: 200
+          rf_max_depth: 10
+          rf_min_samples_leaf: 5
+    outs:
+    - path: models/
+      hash: md5
+      md5: 345ca0187d282c2129fa08605f103a02.dir
+      size: 13264689
+      nfiles: 4
+    - path: reports/model_performance.csv
+      hash: md5
+      md5: 639a4a24596c7f2af28a95a53a397e65
+      size: 438
+  explain:
+    cmd: python src/explain/shap_explain.py
+    deps:
+    - path: data/processed/naro_features.csv
+      hash: md5
+      md5: 774fa8107a312a3bfe2d440b6c84a671
+      size: 1683522
+    - path: models/
+      hash: md5
+      md5: 345ca0187d282c2129fa08605f103a02.dir
+      size: 13264689
+      nfiles: 4
+    - path: src/explain/shap_explain.py
+      hash: md5
+      md5: 295487c466bfec94f4b0e77e076fb518
+      size: 8209
+    params:
+      params.yaml:
+        explain:
+          sample_n: 2000
+          top_n: 15
+    outs:
+    - path: reports/shap_finance_score_bar.png
+      hash: md5
+      md5: 87002846f0160fdb8cb676e10f8cd908
+      size: 43562
+    - path: reports/shap_finance_score_summary.png
+      hash: md5
+      md5: ddbaf89be5cd937c9ba7aec4787bb39f
+      size: 135585
+    - path: reports/shap_health_score_bar.png
+      hash: md5
+      md5: 146301af332aaec4cb84e1df54a319ec
+      size: 43640
+    - path: reports/shap_health_score_summary.png
+      hash: md5
+      md5: 3190f89905f546ed01a7158f555f074b
+      size: 170136
+    - path: reports/shap_importance.csv
+      hash: md5
+      md5: e517b39290002a7b47cc22906875a640
+      size: 6529
+    - path: reports/shap_leisure_score_bar.png
+      hash: md5
+      md5: 57176ca0e522e37ebe385dc75e7c94d8
+      size: 43923
+    - path: reports/shap_leisure_score_summary.png
+      hash: md5
+      md5: bf37333a56fd68fc794c432f451d077c
+      size: 187982
+    - path: reports/shap_relation_score_bar.png
+      hash: md5
+      md5: 759b3aad68924c537472e6aaa44288ef
+      size: 42387
+    - path: reports/shap_relation_score_summary.png
+      hash: md5
+      md5: b197af7a0e9b47b18e9c2686025fb5f2
+      size: 204773

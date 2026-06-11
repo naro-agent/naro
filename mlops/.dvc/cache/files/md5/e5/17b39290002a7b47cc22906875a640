@@ -1,0 +1,101 @@
+feature,feature_kr,mean_abs_shap,target,rank
+w23inc,개인 연소득,4.894792978316219,finance_score,1
+hd001b,가구 총소득,4.278636070801771,finance_score,2
+p23c004,개인 적정 노후생활비,1.7623126693654554,finance_score,3
+p23d001,공적연금 가입여부,0.5123107759476092,finance_score,4
+w23age,나이,0.34008952663349834,finance_score,5
+he001b,총자산,0.22284622519341327,finance_score,6
+he003b,부동산자산,0.20430650273646114,finance_score,7
+he002b,금융자산,0.14470467617507896,finance_score,8
+w23din,가처분소득,0.13041203536335655,finance_score,9
+hdin,가구 가처분소득,0.12043485602208226,finance_score,10
+pension_count,연금 종류수,0.1084736860341719,finance_score,11
+has_public_pension,공적연금 보유,0.10788918831281738,finance_score,12
+w23exp,연간 지출,0.096269081042548,finance_score,13
+p23e001,개인연금 가입여부,0.08770385533192457,finance_score,14
+last_job_income,최근 근로소득,0.0698812881568944,finance_score,15
+total_work_months,총 근무월수,0.05324617821286003,finance_score,16
+p23c003,개인 최소 노후생활비,0.04761186478388618,finance_score,17
+w23edu,교육수준,0.0355813972445511,finance_score,18
+p23d002,공적연금 수령액,0.02438027514838871,finance_score,19
+job_count,일자리 이력수,0.01804167281258307,finance_score,20
+w23mar,혼인상태,0.016211156154444708,finance_score,21
+sex,성별,0.015453632235757074,finance_score,22
+has_private_pension,개인연금 보유,0.011963504087972698,finance_score,23
+is_receiving_pension,연금 수령중,0.006754352982983375,finance_score,24
+is_retired,은퇴여부,0.004840647208934348,finance_score,25
+w23mar,혼인상태,4.697452545166016,health_score,1
+job_count,일자리 이력수,4.091167449951172,health_score,2
+he002b,금융자산,1.5316370725631714,health_score,3
+he003b,부동산자산,1.3288278579711914,health_score,4
+he001b,총자산,1.057166337966919,health_score,5
+total_work_months,총 근무월수,0.7445486187934875,health_score,6
+p23c004,개인 적정 노후생활비,0.7420486807823181,health_score,7
+last_job_income,최근 근로소득,0.7073174715042114,health_score,8
+w23din,가처분소득,0.6216867566108704,health_score,9
+w23exp,연간 지출,0.5866292715072632,health_score,10
+w23edu,교육수준,0.5733874440193176,health_score,11
+p23c003,개인 최소 노후생활비,0.5257387161254883,health_score,12
+w23age,나이,0.4775332510471344,health_score,13
+w23inc,개인 연소득,0.4554680287837982,health_score,14
+is_retired,은퇴여부,0.44852492213249207,health_score,15
+pension_count,연금 종류수,0.4015395939350128,health_score,16
+p23d002,공적연금 수령액,0.19598346948623657,health_score,17
+hdin,가구 가처분소득,0.18404343724250793,health_score,18
+hd001b,가구 총소득,0.15133877098560333,health_score,19
+p23e001,개인연금 가입여부,0.11328918486833572,health_score,20
+is_receiving_pension,연금 수령중,0.10881299525499344,health_score,21
+p23d001,공적연금 가입여부,0.10106221586465836,health_score,22
+sex,성별,0.0715753510594368,health_score,23
+has_private_pension,개인연금 보유,0.022733021527528763,health_score,24
+has_public_pension,공적연금 보유,0.003331988351419568,health_score,25
+job_count,일자리 이력수,2.586570978164673,leisure_score,1
+last_job_income,최근 근로소득,1.125786304473877,leisure_score,2
+p23c003,개인 최소 노후생활비,0.6660196781158447,leisure_score,3
+w23exp,연간 지출,0.6200417280197144,leisure_score,4
+pension_count,연금 종류수,0.6186709403991699,leisure_score,5
+p23c004,개인 적정 노후생활비,0.582784116268158,leisure_score,6
+w23age,나이,0.510003387928009,leisure_score,7
+w23din,가처분소득,0.5073298811912537,leisure_score,8
+he001b,총자산,0.506615400314331,leisure_score,9
+sex,성별,0.5029323697090149,leisure_score,10
+w23mar,혼인상태,0.4769788682460785,leisure_score,11
+w23inc,개인 연소득,0.4605485498905182,leisure_score,12
+he003b,부동산자산,0.45888298749923706,leisure_score,13
+he002b,금융자산,0.44582223892211914,leisure_score,14
+total_work_months,총 근무월수,0.42199376225471497,leisure_score,15
+is_retired,은퇴여부,0.39572906494140625,leisure_score,16
+is_receiving_pension,연금 수령중,0.348125159740448,leisure_score,17
+w23edu,교육수준,0.3045676052570343,leisure_score,18
+p23d001,공적연금 가입여부,0.2296196073293686,leisure_score,19
+hd001b,가구 총소득,0.16393539309501648,leisure_score,20
+p23e001,개인연금 가입여부,0.14466193318367004,leisure_score,21
+hdin,가구 가처분소득,0.12681472301483154,leisure_score,22
+p23d002,공적연금 수령액,0.08173110336065292,leisure_score,23
+has_private_pension,개인연금 보유,0.030186578631401062,leisure_score,24
+has_public_pension,공적연금 보유,0.0038153468631207943,leisure_score,25
+w23age,나이,4.302173614501953,relation_score,1
+w23exp,연간 지출,2.3270201683044434,relation_score,2
+w23din,가처분소득,2.0645997524261475,relation_score,3
+he003b,부동산자산,0.9170222282409668,relation_score,4
+he001b,총자산,0.8187829256057739,relation_score,5
+w23mar,혼인상태,0.7840162515640259,relation_score,6
+w23inc,개인 연소득,0.7591103911399841,relation_score,7
+he002b,금융자산,0.7417699694633484,relation_score,8
+last_job_income,최근 근로소득,0.46612197160720825,relation_score,9
+hdin,가구 가처분소득,0.4576241970062256,relation_score,10
+total_work_months,총 근무월수,0.4084933400154114,relation_score,11
+p23c004,개인 적정 노후생활비,0.3957884609699249,relation_score,12
+hd001b,가구 총소득,0.35536089539527893,relation_score,13
+p23c003,개인 최소 노후생활비,0.33892399072647095,relation_score,14
+w23edu,교육수준,0.31906425952911377,relation_score,15
+pension_count,연금 종류수,0.2820689082145691,relation_score,16
+sex,성별,0.26349568367004395,relation_score,17
+p23d002,공적연금 수령액,0.21335850656032562,relation_score,18
+job_count,일자리 이력수,0.15987198054790497,relation_score,19
+has_private_pension,개인연금 보유,0.15653951466083527,relation_score,20
+p23d001,공적연금 가입여부,0.13551324605941772,relation_score,21
+p23e001,개인연금 가입여부,0.08193498849868774,relation_score,22
+is_retired,은퇴여부,0.06494653970003128,relation_score,23
+is_receiving_pension,연금 수령중,0.03998427465558052,relation_score,24
+has_public_pension,공적연금 보유,0.019551100209355354,relation_score,25
