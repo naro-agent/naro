@@ -180,11 +180,14 @@ async def _rag_select_products(
         })
 
     # Claude에 최적 상품 3개 선별 요청
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
-        api_key=os.getenv("ANTHROPIC_API_KEY"),
-        max_tokens=1500,
-    )
+    api_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY 또는 ANTHROPIC_AUTH_TOKEN 환경변수가 설정되지 않았습니다.")
+    base_url = os.getenv("ANTHROPIC_BASE_URL")
+    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=1500)
+    if base_url:
+        llm_kwargs["base_url"] = base_url
+    llm = ChatAnthropic(**llm_kwargs)
 
     system_prompt = """당신은 JB금융그룹의 노후 준비 전문 금융 상담사입니다.
 고객의 상황을 분석하고 가장 적합한 금융 상품 3개를 선별하여 JSON 형식으로 반환하세요.
@@ -249,7 +252,8 @@ async def _rag_select_products(
             for p in selected[:3]
         ]
 
-    except Exception:
+    except Exception as _e:
+        import traceback; traceback.print_exc()
         # 폴백: RAG 결과 상위 3개를 그대로 반환
         fallback = []
         for doc in all_docs[:3]:
