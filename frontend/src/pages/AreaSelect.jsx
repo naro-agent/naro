@@ -1,33 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Wallet, Heart, Palmtree, Users } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 
 const AREAS = [
   {
     id: 'finance',
-    icon: '💰',
+    Icon: Wallet,
     label: '재무',
     desc: '자산·부채·연금·소득·소비패턴',
     color: '#1264D3',
   },
   {
     id: 'health',
-    icon: '❤️',
+    Icon: Heart,
     label: '건강',
     desc: '건강 상태·의료비·보험 현황',
     color: '#F03E3E',
   },
   {
     id: 'leisure',
-    icon: '🌿',
+    Icon: Palmtree,
     label: '여가활동',
     desc: '취미·여행·문화생활·여가 지출',
     color: '#12B886',
   },
   {
     id: 'relation',
-    icon: '🤝',
+    Icon: Users,
     label: '대인관계',
     desc: '사회활동·가족교류·모임·봉사',
     color: '#F5A623',
@@ -104,7 +104,9 @@ export default function AreaSelect() {
                   }
                 </div>
 
-                <div style={{ fontSize: 32, marginBottom: 10 }}>{area.icon}</div>
+                <div style={{ marginBottom: 10 }}>
+                  <area.Icon size={32} color={isSelected ? area.color : 'var(--text-secondary)'} strokeWidth={1.6} />
+                </div>
                 <div style={{
                   fontSize: 16, fontWeight: 700, marginBottom: 6,
                   color: isSelected ? area.color : 'var(--text-primary)',
@@ -137,8 +139,10 @@ export default function AreaSelect() {
                     fontSize: 12, fontWeight: 700,
                     background: area.color, color: '#fff',
                     padding: '3px 10px', borderRadius: 100,
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
                   }}>
-                    {area.icon} {area.label}
+                    <area.Icon size={11} color="#fff" strokeWidth={2} />
+                    {area.label}
                   </span>
                 );
               })}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, Sparkles, Pencil, Lock, Briefcase, Store, Building } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { PERSONAS } from '../data/mockPersonas.js';
 
@@ -128,7 +129,7 @@ function LinkingScreen({ persona, onDone }) {
         </>
       ) : (
         <>
-          <div style={{ fontSize: 52, marginBottom: 16 }}>✅</div>
+          <CheckCircle2 size={52} color="var(--success)" style={{ marginBottom: 16 }} />
           <p style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>연동 완료!</p>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
             {persona.name}님의 정보를 성공적으로 불러왔습니다.
@@ -255,7 +256,9 @@ export default function Onboarding() {
 
           {/* 추천 뱃지 */}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <span className="badge" style={{ fontSize: 12 }}>✨ 추천 — 더 정확한 진단 결과</span>
+            <span className="badge" style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Sparkles size={12} /> 추천 — 더 정확한 진단 결과
+            </span>
           </div>
 
           {/* 구분선 */}
@@ -276,8 +279,10 @@ export default function Onboarding() {
           >
             <div style={{
               width: 48, height: 48, background: 'var(--bg-section)', borderRadius: 12,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
-            }}>✏️</div>
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <Pencil size={22} color="var(--text-secondary)" strokeWidth={1.8} />
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--text-primary)' }}>
                 직접 입력하기
@@ -289,8 +294,8 @@ export default function Onboarding() {
             <div style={{ fontSize: 20, color: 'var(--text-hint)' }}>›</div>
           </button>
 
-          <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-hint)', marginTop: 28, lineHeight: 1.7 }}>
-            🔒 입력하신 정보는 진단 목적으로만 사용되며<br />외부에 제공되지 않습니다.
+          <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-hint)', marginTop: 28, lineHeight: 1.7, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <Lock size={12} /> 입력하신 정보는 진단 목적으로만 사용되며 외부에 제공되지 않습니다.
           </p>
         </div>
       )}
@@ -331,9 +336,14 @@ export default function Onboarding() {
                   width: 48, height: 48, borderRadius: '50%',
                   background: p.color + '22',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22, flexShrink: 0,
+                  flexShrink: 0,
                 }}>
-                  {p.job_type === '직장인' ? '👔' : p.job_type === '자영업자' ? '🏪' : '🏛️'}
+                  {p.job_type === '직장인'
+                    ? <Briefcase size={22} color={p.color} strokeWidth={1.8} />
+                    : p.job_type === '자영업자'
+                    ? <Store size={22} color={p.color} strokeWidth={1.8} />
+                    : <Building size={22} color={p.color} strokeWidth={1.8} />
+                  }
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -355,8 +365,8 @@ export default function Onboarding() {
             ))}
           </div>
 
-          <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-hint)', marginTop: 24, lineHeight: 1.7 }}>
-            🔒 계정 정보는 진단 목적으로만 사용되며 저장되지 않습니다.
+          <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-hint)', marginTop: 24, lineHeight: 1.7, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <Lock size={12} /> 계정 정보는 진단 목적으로만 사용되며 저장되지 않습니다.
           </p>
         </div>
       )}

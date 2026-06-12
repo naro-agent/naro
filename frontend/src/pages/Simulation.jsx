@@ -4,7 +4,7 @@ import {
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts';
-import { TrendingDown, TrendingUp, Info } from 'lucide-react';
+import { TrendingDown, TrendingUp, Info, Sparkles, AlertTriangle, CheckCircle2, ClipboardList, CalendarDays } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { runSimulation } from '../api/apiClient.js';
 
@@ -48,8 +48,9 @@ const CustomTooltip = ({ active, payload }) => {
         범위: {fmtAxis(d.lower_cash_flow)} ~ {fmtAxis(d.upper_cash_flow)}
       </p>
       {d.events?.length > 0 && (
-        <p style={{ color: 'var(--warning)', marginTop: 6, fontSize: 12 }}>
-          📅 {d.events.join(', ')}
+        <p style={{ color: 'var(--warning)', marginTop: 6, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <CalendarDays size={12} color="var(--warning)" />
+          {d.events.join(', ')}
         </p>
       )}
     </div>
@@ -75,7 +76,7 @@ export default function Simulation() {
   if (!profile) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+        <ClipboardList size={48} color="var(--text-hint)" style={{ marginBottom: 16 }} />
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>프로필을 먼저 입력해주세요.</p>
         <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
           onClick={() => navigate('/')}>홈으로</button>
@@ -97,7 +98,7 @@ export default function Simulation() {
   if (error) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <AlertTriangle size={48} color="var(--warning)" style={{ marginBottom: 16 }} />
         <p style={{ fontWeight: 700, marginBottom: 8 }}>시뮬레이션 생성 실패</p>
         <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>{error}</p>
         <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
@@ -108,7 +109,7 @@ export default function Simulation() {
 
   if (!simulation) return null;
 
-  const { data: rawData, deficit_start_age, total_deficit_months, key_risk_message, assumptions } = simulation;
+  const { data: rawData, deficit_start_age, total_deficit_months, key_risk_message, assumptions, ai_insight } = simulation;
 
   // Recharts Area용: band 필드를 [lower, upper] 배열로 변환
   const data = rawData.map(d => ({
@@ -156,13 +157,36 @@ export default function Simulation() {
           }
           <div>
             <p style={{ fontSize: 14, fontWeight: 700, color: isRisk ? 'var(--danger)' : 'var(--success)', marginBottom: 4 }}>
-              {isRisk ? '⚠️ 위험 구간 감지됨' : '✅ 전 기간 흑자 예측'}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {isRisk
+                  ? <AlertTriangle size={15} color="var(--danger)" />
+                  : <CheckCircle2 size={15} color="var(--success)" />
+                }
+                {isRisk ? '위험 구간 감지됨' : '전 기간 흑자 예측'}
+              </span>
             </p>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--text-primary)' }}>
               {key_risk_message}
             </p>
           </div>
         </div>
+
+        {/* AI 인사이트 카드 */}
+        {ai_insight && (
+          <div style={{
+            background: 'var(--primary-light)',
+            borderRadius: 14, padding: '14px 16px', marginBottom: 16,
+            borderLeft: '4px solid var(--primary)',
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Sparkles size={14} color="var(--primary)" />
+              AI 노후 설계 인사이트
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text-primary)' }}>
+              {ai_insight}
+            </p>
+          </div>
+        )}
 
         {/* ② 주요 수치 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>

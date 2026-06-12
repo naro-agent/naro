@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, PiggyBank, Landmark,
-  Calendar, Banknote, ShieldCheck, CreditCard, BadgeCheck,
+  Calendar, Banknote, ShieldCheck, CreditCard, BadgeCheck, Compass,
 } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 
@@ -33,7 +33,7 @@ export default function Dashboard() {
   if (!profile) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🧭</div>
+        <Compass size={48} color="var(--text-hint)" style={{ marginBottom: 16 }} />
         <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>먼저 프로필을 설정해주세요.</p>
         <button className="btn-primary" style={{ maxWidth: 240, margin: '0 auto', display: 'block' }}
           onClick={() => navigate('/')}>홈으로 이동</button>

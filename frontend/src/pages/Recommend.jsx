@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Landmark, PiggyBank, BarChart3, ShieldCheck, Building2, ChevronRight, Info } from 'lucide-react';
+import { Landmark, PiggyBank, BarChart3, ShieldCheck, Building2, Info, TrendingUp, Lightbulb, AlertTriangle, MessageCircle, ClipboardList } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { runRecommend } from '../api/apiClient.js';
 import { SURVEY_DATA } from '../data/surveyData.js';
@@ -39,6 +39,14 @@ const BANK_COLOR = {
   'JB우리캐피탈': '#3D8EFF',
 };
 
+// 영역별 컬러 (설문조사·진단 결과와 통일)
+const AREA_COLOR = {
+  '재무':    { bg: '#E8F1FF', border: '#1264D3', text: '#1264D3', badge: '#1264D3' },
+  '건강':    { bg: '#FFF0F0', border: '#F03E3E', text: '#C92A2A', badge: '#F03E3E' },
+  '여가활동': { bg: '#FFF8E1', border: '#F5A623', text: '#B8690A', badge: '#F5A623' },
+  '대인관계': { bg: '#F0FFF4', border: '#12B886', text: '#0A7A5A', badge: '#12B886' },
+};
+
 export default function Recommend() {
   const navigate = useNavigate();
   const { profile, surveyScores, selectedAreas, recommend, setRecommend } = useAppContext();
@@ -61,7 +69,7 @@ export default function Recommend() {
   if (!profile || !surveyScores) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+        <ClipboardList size={48} color="var(--text-hint)" style={{ marginBottom: 16 }} />
         <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
           먼저 노후 준비 진단 설문을 완료해주세요.
         </p>
@@ -83,7 +91,7 @@ export default function Recommend() {
   if (error) {
     return (
       <div style={{ padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <AlertTriangle size={48} color="var(--warning)" style={{ marginBottom: 16 }} />
         <p style={{ fontWeight: 700, marginBottom: 8 }}>추천 생성 실패</p>
         <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>{error}</p>
         <button className="btn-primary" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}
@@ -142,8 +150,10 @@ export default function Recommend() {
                 <div style={{
                   background: 'var(--bg-section)', borderRadius: 8, padding: '8px 12px',
                   fontSize: 13, color: 'var(--primary)', fontWeight: 600, marginBottom: 12,
+                  display: 'flex', alignItems: 'center', gap: 6,
                 }}>
-                  📈 예상 효과: {card.expected_effect}
+                  <TrendingUp size={14} color="var(--primary)" />
+                  예상 효과: {card.expected_effect}
                 </div>
                 <button
                   className="btn-secondary"
@@ -161,62 +171,80 @@ export default function Recommend() {
         {recommend.products.length > 0 && (
           <>
             <h3 className="section-title" style={{ marginTop: 8, marginBottom: 12 }}>JB금융 맞춤 상품</h3>
-            {recommend.products.map((prod, i) => (
-              <div key={i} className="card" style={{
-                marginBottom: 10,
-                border: prod.is_virtual ? '1.5px dashed #F5A623' : '1.5px solid var(--border)',
-              }}>
-                {/* 상단: 은행 뱃지 + 가상상품 마크 + 금리 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 700,
-                      background: (BANK_COLOR[prod.bank] || 'var(--primary)') + '22',
-                      color: BANK_COLOR[prod.bank] || 'var(--primary)',
-                      padding: '2px 8px', borderRadius: 100,
-                    }}>{prod.bank}</span>
-                    <span className="badge" style={{ fontSize: 11 }}>{prod.type}</span>
-                    {prod.area && (
+            {recommend.products.map((prod, i) => {
+              const areaColor = AREA_COLOR[prod.area] || AREA_COLOR['재무'];
+              return (
+                <div key={i} style={{
+                  background: '#fff',
+                  borderRadius: 16,
+                  marginBottom: 12,
+                  overflow: 'hidden',
+                  border: prod.is_virtual ? '1.5px dashed #F5A623' : `1.5px solid ${areaColor.border}`,
+                  boxShadow: 'var(--shadow-card)',
+                }}>
+                  {/* 영역 컬러 헤더 바 */}
+                  <div style={{
+                    background: areaColor.bg,
+                    borderBottom: `1px solid ${areaColor.border}20`,
+                    padding: '10px 16px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {prod.area && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700,
+                          background: areaColor.badge, color: '#fff',
+                          padding: '2px 8px', borderRadius: 100,
+                        }}>{prod.area}</span>
+                      )}
                       <span style={{
                         fontSize: 11, fontWeight: 600,
-                        background: '#F0F5FF', color: 'var(--primary)',
+                        background: '#fff', color: areaColor.text,
                         padding: '2px 8px', borderRadius: 100,
-                      }}>{prod.area}</span>
-                    )}
+                        border: `1px solid ${areaColor.border}40`,
+                      }}>{prod.type}</span>
+                      {prod.is_virtual && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700,
+                          background: '#FFF3CD', color: '#B8690A',
+                          padding: '2px 8px', borderRadius: 100,
+                          border: '1px solid #F5A623',
+                          display: 'inline-flex', alignItems: 'center', gap: 3,
+                        }}>
+                          <AlertTriangle size={10} color="#B8690A" /> 가상
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: areaColor.text }}>{prod.rate}</span>
+                  </div>
+
+                  {/* 본문 */}
+                  <div style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                      <h4 style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, flex: 1 }}>{prod.name}</h4>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
+                      {prod.description}
+                    </p>
+                    <div style={{
+                      background: areaColor.bg,
+                      borderRadius: 8, padding: '8px 12px',
+                      fontSize: 12, color: areaColor.text, fontWeight: 600, lineHeight: 1.6,
+                      display: 'flex', alignItems: 'flex-start', gap: 6,
+                    }}>
+                      <Lightbulb size={13} color={areaColor.text} style={{ flexShrink: 0, marginTop: 2 }} />
+                      {prod.reason}
+                    </div>
                     {prod.is_virtual && (
-                      <span style={{
-                        fontSize: 11, fontWeight: 700,
-                        background: '#FFF3CD', color: '#B8690A',
-                        padding: '2px 10px', borderRadius: 100,
-                        border: '1px solid #F5A623',
-                        display: 'flex', alignItems: 'center', gap: 3,
-                      }}>⚠️ 가상 상품</span>
+                      <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <AlertTriangle size={12} color="var(--warning)" />
+                        현재 출시되지 않은 기획 단계 상품입니다.
+                      </p>
                     )}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', flexShrink: 0 }}>{prod.rate}</span>
                 </div>
-
-                <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{prod.name}</h4>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.6 }}>
-                  {prod.description}
-                </p>
-                <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: prod.is_virtual ? 8 : 0 }}>
-                  💡 {prod.reason}
-                </p>
-
-                {/* 가상 상품 안내 문구 */}
-                {prod.is_virtual && (
-                  <div style={{
-                    background: '#FFFBF0', border: '1px solid #F5A623',
-                    borderRadius: 8, padding: '8px 12px',
-                    fontSize: 11, color: '#8A5A00', lineHeight: 1.6,
-                  }}>
-                    ⚠️ 이 상품은 현재 출시되지 않은 <strong>기획 단계 가상 상품</strong>입니다.
-                    유사한 상품이 타 금융사에 존재할 수 있으며, JB금융그룹 출시 시 안내해 드립니다.
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </>
         )}
 
@@ -225,12 +253,15 @@ export default function Recommend() {
           margin: '16px 0', padding: '14px 16px',
           background: 'var(--bg-section)', borderRadius: 12,
           fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.7,
+          display: 'flex', alignItems: 'flex-start', gap: 6,
         }}>
-          ⚠️ {recommend.disclaimer}
+          <AlertTriangle size={13} color="var(--text-secondary)" style={{ flexShrink: 0, marginTop: 1 }} />
+          {recommend.disclaimer}
         </div>
 
-        <button className="btn-primary" style={{ marginBottom: 24 }} onClick={() => navigate('/chat')}>
-          AI에게 더 물어보기 💬
+        <button className="btn-primary" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={() => navigate('/chat')}>
+          <MessageCircle size={18} />
+          AI에게 더 물어보기
         </button>
       </div>
     </div>

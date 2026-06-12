@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+// 로컬: Vite 프록시(/api → localhost:8000)
+// 프로덕션: VITE_API_URL=https://naro-api.railway.app 으로 직접 요청
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
+
 const client = axios.create({
-  baseURL: '/api',
-  timeout: 30000,
+  baseURL,
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Compass, Wallet, Heart, Palmtree, Users } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 
 export default function Home() {
@@ -35,7 +36,7 @@ export default function Home() {
           </span>
         </div>
 
-        <div style={{ fontSize: 52, marginBottom: 16 }}>🧭</div>
+        <Compass size={52} color="#fff" strokeWidth={1.4} style={{ marginBottom: 16, opacity: 0.95 }} />
         <h1 style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.35, marginBottom: 14 }}>
           나만의 노후 항로,<br />나로(NaRo)
         </h1>
@@ -47,17 +48,17 @@ export default function Home() {
         {/* 4대 영역 뱃지 */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
-            { icon: '💰', label: '재무' },
-            { icon: '❤️', label: '건강' },
-            { icon: '🌿', label: '여가활동' },
-            { icon: '🤝', label: '대인관계' },
-          ].map(({ icon, label }) => (
+            { Icon: Wallet, label: '재무' },
+            { Icon: Heart, label: '건강' },
+            { Icon: Palmtree, label: '여가활동' },
+            { Icon: Users, label: '대인관계' },
+          ].map(({ Icon, label }) => (
             <div key={label} style={{
               background: 'rgba(255,255,255,0.18)', borderRadius: 100,
               padding: '6px 14px', fontSize: 13, fontWeight: 600,
               display: 'flex', alignItems: 'center', gap: 5,
             }}>
-              <span>{icon}</span><span>{label}</span>
+              <Icon size={14} color="#fff" strokeWidth={2} /><span>{label}</span>
             </div>
           ))}
         </div>
