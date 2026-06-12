@@ -13,16 +13,16 @@ train:
   # 공통
   random_state: 42
   cv_folds: 5
-  # XGBoost
-  xgb_n_estimators: 300
-  xgb_max_depth: 6
-  xgb_learning_rate: 0.05
+  # XGBoost — n_estimators↑, depth↑, lr↓ (과적합 방지 + 표현력 향상)
+  xgb_n_estimators: 500
+  xgb_max_depth: 8
+  xgb_learning_rate: 0.03
   xgb_subsample: 0.8
-  xgb_colsample_bytree: 0.8
-  # RandomForest
-  rf_n_estimators: 200
-  rf_max_depth: 10
-  rf_min_samples_leaf: 5
+  xgb_colsample_bytree: 0.7
+  # RandomForest — estimators↑, depth↑ (건강·대인관계 복잡한 패턴 포착)
+  rf_n_estimators: 300
+  rf_max_depth: 15
+  rf_min_samples_leaf: 3
 
 explain:
   # SHAP 계산에 사용할 최대 샘플 수

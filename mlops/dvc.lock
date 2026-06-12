@@ -42,31 +42,31 @@ stages:
       size: 1683522
     - path: src/models/train.py
       hash: md5
-      md5: 00fc9a8bd86961b647c66be977faedcc
-      size: 5585
+      md5: 5566574a27d150d23355ea3fbbf24ba0
+      size: 8799
     params:
       params.yaml:
         train:
           random_state: 42
           cv_folds: 5
-          xgb_n_estimators: 300
-          xgb_max_depth: 6
-          xgb_learning_rate: 0.05
+          xgb_n_estimators: 500
+          xgb_max_depth: 8
+          xgb_learning_rate: 0.03
           xgb_subsample: 0.8
-          xgb_colsample_bytree: 0.8
-          rf_n_estimators: 200
-          rf_max_depth: 10
-          rf_min_samples_leaf: 5
+          xgb_colsample_bytree: 0.7
+          rf_n_estimators: 300
+          rf_max_depth: 15
+          rf_min_samples_leaf: 3
     outs:
     - path: models/
       hash: md5
-      md5: 345ca0187d282c2129fa08605f103a02.dir
-      size: 13264689
+      md5: 42ffff30b80e577033cd5329fdf1784a.dir
+      size: 88621730
       nfiles: 4
     - path: reports/model_performance.csv
       hash: md5
-      md5: 639a4a24596c7f2af28a95a53a397e65
-      size: 438
+      md5: ba0fbc90daa3d48d663d1b1a3e55b2e5
+      size: 442
   explain:
     cmd: python src/explain/shap_explain.py
     deps:

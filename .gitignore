@@ -26,5 +26,22 @@ desktop.ini
 *.swp
 *.swo
 
+# ── MLOps ──
+# DVC 캐시 (로컬 전용, 대용량)
+mlops/.dvc/cache/
+mlops/.dvc/tmp/
+# DVC 로컬 remote 저장소 (대용량 데이터)
+mlops/dvc_storage/
+# KReIS 원본 데이터 (공공데이터, 재배포 제한)
+mlops/data/raw/
+mlops/data/processed/
+# 학습된 모델 (DVC로 관리)
+mlops/models/
+# SHAP 시각화 이미지 (DVC로 관리)
+mlops/reports/*.png
+# MLflow DB 및 실험 결과 (로컬 전용)
+mlops/mlflow.db
+mlops/mlruns/
+
 # ── Claude ──
 CLAUDE.md
