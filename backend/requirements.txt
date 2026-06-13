@@ -9,4 +9,5 @@ python-dotenv==1.2.2
 pydantic==2.13.4
 chromadb==0.6.3
 sentence-transformers==3.4.1
-torch==2.5.1
+torch==2.5.1+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu

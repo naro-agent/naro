@@ -102,6 +102,7 @@ class SimulationResult(BaseModel):
     total_deficit_months: int
     key_risk_message: str
     assumptions: SimulationAssumptions
+    ai_insight: Optional[str] = None   # Claude 생성 종합 인사이트
 
 
 class RecommendRequest(BaseModel):

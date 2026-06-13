@@ -157,9 +157,9 @@ async def _rag_select_products(
 
     query = _build_search_query(profile, diagnosis, survey_scores)
 
-    # 실제 상품 + 가상 상품 각각 검색
-    real_docs = search_products(query, k=6, filter_virtual=False)
-    virtual_docs = search_products(query, k=4, filter_virtual=True)
+    # 실제 상품 + 가상 상품 각각 검색 (k 줄여서 컨텍스트 최소화)
+    real_docs = search_products(query, k=4, filter_virtual=False)
+    virtual_docs = search_products(query, k=3, filter_virtual=True)
     all_docs = real_docs + virtual_docs
 
     if not all_docs:
@@ -176,7 +176,7 @@ async def _rag_select_products(
             "category": m.get("category", ""),
             "area": m.get("area", ""),
             "is_virtual": m.get("is_virtual", False),
-            "content": doc.page_content[:600],
+            "content": doc.page_content[:300],
         })
 
     # Claude에 최적 상품 3개 선별 요청
@@ -184,33 +184,17 @@ async def _rag_select_products(
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY 또는 ANTHROPIC_AUTH_TOKEN 환경변수가 설정되지 않았습니다.")
     base_url = os.getenv("ANTHROPIC_BASE_URL")
-    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=1500)
+    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=800, timeout=50)
     if base_url:
         llm_kwargs["base_url"] = base_url
     llm = ChatAnthropic(**llm_kwargs)
 
-    system_prompt = """당신은 JB금융그룹의 노후 준비 전문 금융 상담사입니다.
-고객의 상황을 분석하고 가장 적합한 금융 상품 3개를 선별하여 JSON 형식으로 반환하세요.
+    system_prompt = """JB금융그룹 노후 준비 상담사입니다. 고객 상황에 맞는 최적 금융 상품 3개를 JSON 배열로만 반환하세요.
 
-반환 형식 (반드시 JSON 배열만 반환):
-[
-  {
-    "id": "상품 id",
-    "name": "상품명",
-    "bank": "은행명",
-    "type": "상품유형(적금/예금/펀드/보험/신탁/대출/연금 중 하나)",
-    "description": "상품 핵심 특징 1~2줄",
-    "rate": "금리 또는 수익률 정보 (없으면 '상담 필요')",
-    "reason": "이 고객에게 추천하는 이유 2~3줄",
-    "is_virtual": true 또는 false,
-    "area": "재무/건강/여가활동/대인관계 중 하나"
-  }
-]
+형식:
+[{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"핵심특징 1줄","rate":"금리(없으면 상담 필요)","reason":"추천이유 2줄","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계"}]
 
-주의:
-- 가상 상품(is_virtual: true)은 실제 존재하지 않으므로 추천 이유에 반드시 "현재 기획 단계의 상품"임을 명시
-- 실제 상품과 가상 상품을 고루 섞어 추천 (가상 상품 1~2개 포함)
-- 고객의 취약 영역과 직접 관련된 상품 우선 추천"""
+규칙: 가상 상품 1~2개 포함, 취약 영역 관련 상품 우선, JSON만 출력"""
 
     user_message = f"""고객 정보:
 {query}
