@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { Bot, ArrowUp, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Bot, ArrowUp, RefreshCw, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { sendChat, submitFeedback } from '../api/apiClient.js';
 
@@ -90,14 +90,17 @@ function Bubble({ msg, onFeedback }) {
 
 export default function Chat() {
   const navigate = useNavigate();
-  const { profile, diagnosis } = useAppContext();
+  const { profile, diagnosis, simulation, surveyScores } = useAppContext();
 
-  const [messages, setMessages] = useState([{
-    role: 'assistant',
-    content: '안녕하세요! 진단 결과나 노후 준비에 대해 궁금한 점을 자유롭게 질문해 주세요.',
-  }]);
+  const INIT_MSG = { role: 'assistant', content: '안녕하세요! 진단 결과나 노후 준비에 대해 궁금한 점을 자유롭게 질문해 주세요.' };
+
+  const [messages, setMessages] = useState([INIT_MSG]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState('free'); // 'free' | 'proactive'
+  const [quickOptions, setQuickOptions] = useState([]);
+  const [proactiveStep, setProactiveStep] = useState(0);
+  const [proactiveQuestions, setProactiveQuestions] = useState([]);
   const lastUserMsgRef = useRef('');
   const bottomRef = useRef(null);
 
@@ -112,7 +115,7 @@ export default function Chat() {
         rating,
         user_message: lastUserMsgRef.current,
         ai_response: msg.content,
-        mode: 'free',
+        mode,
         profile_age: profile?.age || null,
         profile_job_type: profile?.job_type || null,
         risk_areas: diagnosis?.risk_areas || [],
@@ -122,24 +125,90 @@ export default function Chat() {
     }
   };
 
-  const sendMessage = async (text) => {
+  const resetChat = (newMode = 'free') => {
+    setMode(newMode);
+    setMessages([INIT_MSG]);
+    setInput('');
+    setQuickOptions([]);
+    setProactiveStep(0);
+    setProactiveQuestions([]);
+  };
+
+  const sendMessage = async (text, stepOverride) => {
     const msg = text || input.trim();
     if (!msg || loading) return;
     setInput('');
+    setQuickOptions([]);
     lastUserMsgRef.current = msg;
 
-    const userMsg = { role: 'user', content: msg };
+    const currentMode = stepOverride !== undefined ? 'proactive' : mode;
+    const currentQuestion = (currentMode === 'proactive' && proactiveStep > 0 && proactiveQuestions[proactiveStep - 1])
+      ? proactiveQuestions[proactiveStep - 1].question
+      : undefined;
+    const userMsg = {
+      role: 'user',
+      content: msg,
+      ...(currentMode === 'proactive' && proactiveStep > 0 ? {
+        proactive_step: proactiveStep,
+        ...(currentQuestion ? { proactive_question: currentQuestion } : {}),
+      } : {}),
+    };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setLoading(true);
 
-    const history = newMessages.map(m => ({ role: m.role, content: m.content }));
+    const savedQuestions = proactiveQuestions.length > 0 ? proactiveQuestions : [];
+    const history = [
+      ...(savedQuestions.length > 0 ? [{ role: 'system', proactive_questions: savedQuestions }] : []),
+      ...newMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+        ...(m.proactive_step ? { proactive_step: m.proactive_step } : {}),
+        ...(m.proactive_question ? { proactive_question: m.proactive_question } : {}),
+      })),
+    ];
 
     try {
-      const resp = await sendChat(msg, profile, diagnosis, history, 'free');
-      setMessages(prev => [...prev, { role: 'assistant', content: resp.reply, message_id: resp.message_id }]);
+      const resp = await sendChat(msg, profile, diagnosis, simulation, surveyScores, history, currentMode);
+      const assistantMsg = { role: 'assistant', content: resp.reply, message_id: resp.message_id };
+      setMessages(prev => [...prev, assistantMsg]);
+
+      if (resp.proactive_questions) {
+        setProactiveQuestions(resp.proactive_questions);
+      }
+      if (resp.quick_options?.length > 0) {
+        setQuickOptions(resp.quick_options);
+        setProactiveStep(resp.proactive_step || 0);
+      } else {
+        setProactiveStep(0);
+      }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: '죄송합니다. 일시적인 오류가 발생했습니다.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startProactive = async () => {
+    setMode('proactive');
+    setMessages([INIT_MSG]);
+    setInput('');
+    setQuickOptions([]);
+    setProactiveStep(0);
+    setLoading(true);
+
+    try {
+      const resp = await sendChat('시작', profile, diagnosis, simulation, surveyScores, [], 'proactive');
+      setMessages([INIT_MSG, { role: 'assistant', content: resp.reply, message_id: resp.message_id }]);
+      if (resp.proactive_questions) {
+        setProactiveQuestions(resp.proactive_questions);
+      }
+      if (resp.quick_options?.length > 0) {
+        setQuickOptions(resp.quick_options);
+        setProactiveStep(resp.proactive_step || 1);
+      }
+    } catch {
+      setMessages([INIT_MSG, { role: 'assistant', content: '죄송합니다. 일시적인 오류가 발생했습니다.' }]);
     } finally {
       setLoading(false);
     }
@@ -159,7 +228,7 @@ export default function Chat() {
           <div style={{ fontSize: 11, color: 'var(--success)' }}>● 온라인</div>
         </div>
         <button
-          onClick={() => setMessages([{ role: 'assistant', content: '안녕하세요! 진단 결과나 노후 준비에 대해 궁금한 점을 자유롭게 질문해 주세요.' }])}
+          onClick={() => resetChat('free')}
           style={{ width: 40, height: 40, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}
         >
           <RefreshCw size={18} color="var(--text-secondary)" strokeWidth={1.8} />
@@ -198,19 +267,62 @@ export default function Chat() {
           </div>
         )}
 
-        {/* 추천 질문 (첫 화면) */}
+        {/* 첫 화면 — 모드 선택 + 추천 질문 */}
         {messages.length === 1 && !loading && (
-          <div style={{ margin: '8px 0 12px 40px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {QUICK_QUESTIONS.slice(0, diagnosis ? 5 : 3).map((q, i) => (
-              <button key={i} onClick={() => sendMessage(q)} style={{
-                border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+          <div style={{ margin: '8px 0 12px 0' }}>
+            {/* 가이드 상담 배너 */}
+            {diagnosis && (
+              <div style={{
+                margin: '0 0 12px 0', background: 'var(--primary-light)',
+                border: '1.5px solid var(--primary)', borderRadius: 14,
+                padding: '14px 16px',
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 6 }}>
+                  <Sparkles size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  AI 가이드 상담
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                  진단 결과를 바탕으로 AI가 맞춤 질문을 드립니다. 답변하시면 종합 분석을 제공해드려요.
+                </div>
+                <button onClick={startProactive} style={{
+                  background: 'var(--primary)', color: '#fff', border: 'none',
+                  borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+                }}>
+                  가이드 상담 시작하기
+                </button>
+              </div>
+            )}
+
+            {/* 자유 질문 목록 */}
+            <div style={{ paddingLeft: 40, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {QUICK_QUESTIONS.slice(0, diagnosis ? 5 : 3).map((q, i) => (
+                <button key={i} onClick={() => sendMessage(q)} style={{
+                  border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                  borderRadius: 12, padding: '11px 14px', fontSize: 13,
+                  cursor: 'pointer', color: 'var(--text-primary)', textAlign: 'left',
+                  fontFamily: 'inherit', transition: 'border-color 0.15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                >{q}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* proactive 선택지 버튼 */}
+        {quickOptions.length > 0 && !loading && (
+          <div style={{ margin: '4px 0 12px 40px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {quickOptions.map((opt, i) => (
+              <button key={i} onClick={() => sendMessage(opt.label)} style={{
+                border: '1.5px solid var(--primary)', background: 'var(--primary-light)',
                 borderRadius: 12, padding: '11px 14px', fontSize: 13,
-                cursor: 'pointer', color: 'var(--text-primary)', textAlign: 'left',
-                fontFamily: 'inherit', transition: 'border-color 0.15s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-              >{q}</button>
+                cursor: 'pointer', color: 'var(--primary)', textAlign: 'left',
+                fontFamily: 'inherit', fontWeight: 500,
+              }}>
+                {opt.label}
+              </button>
             ))}
           </div>
         )}

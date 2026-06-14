@@ -143,6 +143,8 @@ class ChatRequest(BaseModel):
     message: str
     profile: Optional[UserProfile] = None
     diagnosis: Optional[DiagnosisResult] = None
+    simulation: Optional[SimulationResult] = None
+    survey_scores: Optional[dict] = None
     history: list[dict] = []
     mode: str = "free"  # "proactive" | "free"
 
@@ -159,6 +161,7 @@ class ChatResponse(BaseModel):
     quick_options: list[QuickOption] = []
     is_proactive: bool = False
     proactive_step: int = 0
+    proactive_questions: Optional[list[dict]] = None  # 첫 응답에서 전체 질문 목록 전달
 
 
 class FeedbackRequest(BaseModel):
