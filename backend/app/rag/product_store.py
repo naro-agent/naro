@@ -22,20 +22,35 @@ CHROMA_DIR = _BASE_DIR / "data" / "chroma_db"
 
 EMBED_MODEL = "jhgan/ko-sroberta-multitask"
 
-# 영역 키워드 매핑
-_AREA_KEYWORDS = {
-    "재무":    ["연금", "적금", "예금", "펀드", "대출", "IRP", "ISA", "퇴직", "신탁", "재무"],
-    "건강":    ["건강", "의료", "실버케어", "질병", "요양", "헬스"],
-    "여가활동": ["여가", "여행", "문화", "취미", "액티브", "시니어라이프"],
-    "대인관계": ["가족", "커뮤니티", "사회활동", "봉사", "모임", "가족사랑"],
+# 영역 전용 키워드 — 재무 영역보다 먼저 검사 (특수성 높은 순)
+_AREA_SPECIFIC_KEYWORDS = {
+    "건강":    ["건강적금", "의료비", "실버케어", "중대질병", "간병", "요양보험", "헬스케어",
+                "건강 목적", "건강보험", "장기요양", "건강검진", "수술비", "입원비"],
+    "여가활동": ["여가", "여행적금", "문화생활", "취미", "액티브 시니어", "시니어라이프",
+                "여행", "문화 ISA", "여가 목적"],
+    "대인관계": ["가족사랑", "가족신탁", "커뮤니티", "사회활동", "봉사", "모임",
+                "가족 지원", "시니어 커뮤니티"],
+}
+
+# 섹션 헤더 → 영역 매핑 (07_virtual_products.md 섹션 구분용)
+_SECTION_AREA = {
+    "건강 영역": "건강",
+    "여가활동 영역": "여가활동",
+    "대인관계 영역": "대인관계",
 }
 
 
-def _detect_area(text: str) -> str:
-    """상품 텍스트에서 노후 준비 영역을 추론."""
-    for area, keywords in _AREA_KEYWORDS.items():
+def _detect_area(text: str, section_hint: str = "") -> str:
+    """상품 텍스트에서 노후 준비 영역을 추론. 특수 영역 키워드 우선 검사."""
+    # 섹션 힌트가 있으면 우선 사용
+    if section_hint:
+        return section_hint
+
+    # 건강·여가·대인관계 특수 키워드 먼저 확인
+    for area, keywords in _AREA_SPECIFIC_KEYWORDS.items():
         if any(kw in text for kw in keywords):
             return area
+
     return "재무"
 
 
@@ -46,14 +61,32 @@ def _parse_md_products(md_path: Path) -> list[Document]:
     # 프론트매터에서 is_virtual 판별
     is_virtual = "is_virtual: true" in text
 
-    # '### ' 로 시작하는 상품 블록 분리 (레벨 3 헤더)
-    blocks = re.split(r"\n(?=### )", text)
-    docs = []
+    # 섹션 헤더(## 레벨) 위치를 미리 기록해 각 상품의 섹션 힌트로 활용
+    # 예: "## 건강 영역 가상 상품" → "건강"
+    section_map: list[tuple[int, str]] = []  # (char_offset, area)
+    for m in re.finditer(r"^## (.+)$", text, flags=re.MULTILINE):
+        header = m.group(1).strip()
+        for key, area_val in _SECTION_AREA.items():
+            if key in header:
+                section_map.append((m.start(), area_val))
+                break
 
-    for block in blocks:
-        block = block.strip()
+    def _section_hint_at(offset: int) -> str:
+        """offset 이전에 등장한 가장 마지막 섹션 힌트 반환."""
+        hint = ""
+        for pos, area_val in section_map:
+            if pos <= offset:
+                hint = area_val
+        return hint
+
+    # '### ' 로 시작하는 상품 블록 분리 (레벨 3 헤더)
+    docs = []
+    for m in re.finditer(r"(?:^|\n)(### .+?)(?=\n### |\Z)", text, flags=re.DOTALL):
+        block = m.group(1).strip()
         if not block.startswith("###"):
             continue
+
+        block_offset = m.start()
 
         # 상품명 추출 (첫 줄)
         first_line = block.split("\n")[0]
@@ -71,7 +104,8 @@ def _parse_md_products(md_path: Path) -> list[Document]:
             elif line.startswith("은행:"):
                 bank = line.replace("은행:", "").strip()
 
-        area = _detect_area(block)
+        section_hint = _section_hint_at(block_offset)
+        area = _detect_area(block, section_hint)
 
         # 상품 고유 ID: 이름 해시
         product_id = hashlib.md5(clean_name.encode()).hexdigest()[:8]
