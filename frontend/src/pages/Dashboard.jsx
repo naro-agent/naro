@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -6,8 +6,76 @@ import {
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, PiggyBank, Landmark,
-  Calendar, Banknote, ShieldCheck, CreditCard, BadgeCheck, Compass,
+  Calendar, Banknote, ShieldCheck, CreditCard, BadgeCheck, Compass, Brain,
 } from 'lucide-react';
+
+const LOADING_STEPS = [
+  { label: 'KReIS 기반 예측 모델 로딩 중...', duration: 600 },
+  { label: '4대 영역 설문 데이터 분석 중...', duration: 700 },
+  { label: 'XGBoost 점수 예측 중...', duration: 700 },
+  { label: '동연령 기준 비교 중...', duration: 500 },
+  { label: '진단 완료!', duration: 400 },
+];
+
+function ScoringOverlay() {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let accumulated = 0;
+    const total = LOADING_STEPS.reduce((s, st) => s + st.duration, 0);
+    let cur = 0;
+    const tick = () => {
+      if (cur >= LOADING_STEPS.length) return;
+      accumulated += LOADING_STEPS[cur].duration;
+      setProgress(Math.round((accumulated / total) * 100));
+      cur += 1;
+      setStepIdx(cur < LOADING_STEPS.length ? cur : LOADING_STEPS.length - 1);
+      if (cur < LOADING_STEPS.length) setTimeout(tick, LOADING_STEPS[cur].duration);
+    };
+    setTimeout(tick, LOADING_STEPS[0].duration);
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'linear-gradient(160deg, #1264D3 0%, #0F52B8 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', color: '#fff',
+    }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 28, animation: 'scorePulse 1.4s ease-in-out infinite',
+      }}>
+        <Brain size={38} color="#fff" strokeWidth={1.4} />
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>노후 준비 점수 예측 중</div>
+      <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 36 }}>MLOps 파이프라인 · KReIS 데이터 기반</div>
+      <div style={{ width: 220, height: 5, background: 'rgba(255,255,255,0.2)', borderRadius: 10, marginBottom: 20, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', borderRadius: 10, background: '#fff',
+          width: `${progress}%`, transition: 'width 0.55s ease',
+        }} />
+      </div>
+      <div style={{ fontSize: 13, opacity: 0.85, minHeight: 20 }}>{LOADING_STEPS[stepIdx].label}</div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 24 }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            width: 7, height: 7, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.7)',
+            animation: `scoreDot 1.2s ${i * 0.2}s ease-in-out infinite`,
+          }} />
+        ))}
+      </div>
+      <style>{`
+        @keyframes scorePulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:0.85} }
+        @keyframes scoreDot   { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+      `}</style>
+    </div>
+  );
+}
 import { useAppContext } from '../App.jsx';
 
 const fmtWon = (n) => n.toLocaleString('ko-KR') + '원';
@@ -29,6 +97,13 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { profile } = useAppContext();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'spending' | 'accounts'
+  const [scoring, setScoring] = useState(false);
+
+  const handleStartDiagnosis = () => {
+    setScoring(true);
+    const total = LOADING_STEPS.reduce((s, st) => s + st.duration, 0);
+    setTimeout(() => navigate('/diagnosis'), total);
+  };
 
   if (!profile) {
     return (
@@ -80,6 +155,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh' }}>
+      {scoring && <ScoringOverlay />}
       <div className="app-header">
         <button className="back-btn" onClick={() => navigate('/')}>‹</button>
         <span className="header-title">재무 현황</span>
@@ -384,7 +460,7 @@ export default function Dashboard() {
           </>
         )}
 
-        <button className="btn-primary" style={{ marginBottom: 24 }} onClick={() => navigate('/diagnosis')}>
+        <button className="btn-primary" style={{ marginBottom: 24 }} onClick={handleStartDiagnosis}>
           은퇴 준비 진단 시작 →
         </button>
       </div>
