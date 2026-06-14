@@ -6,6 +6,7 @@ RAG 기반 맞춤 추천 Agent
 """
 
 import os
+import re
 import json
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -117,34 +118,46 @@ def _build_action_cards(
 
 # ── RAG 기반 상품 추천 ───────────────────────────────────────
 
-def _build_search_query(profile: UserProfile, diagnosis: DiagnosisResult, survey_scores: dict) -> str:
-    """사용자 상황을 자연어 쿼리로 변환."""
-    parts = []
+_AREA_QUERY_KEYWORDS = {
+    "finance":  "연금 적금 예금 IRP 재무 노후자금 퇴직연금",
+    "health":   "건강 의료비 실버케어 질병 보험 요양",
+    "leisure":  "여가 여행 문화생활 취미 액티브 시니어",
+    "relation": "가족 커뮤니티 사회활동 가족신탁 대인관계",
+}
 
-    parts.append(f"만 {profile.age}세 {profile.job_type}")
+_AREA_LABEL = {
+    "finance": "재무", "health": "건강",
+    "leisure": "여가활동", "relation": "대인관계",
+}
 
-    weak_areas = []
-    if survey_scores.get("finance", 100) < 60:
-        weak_areas.append("재무")
-    if survey_scores.get("health", 100) < 60:
-        weak_areas.append("건강")
-    if survey_scores.get("leisure", 100) < 60:
-        weak_areas.append("여가활동")
-    if survey_scores.get("relation", 100) < 60:
-        weak_areas.append("대인관계")
 
-    if weak_areas:
-        parts.append(f"노후 준비 취약 영역: {', '.join(weak_areas)}")
+def _clean_content(text: str) -> str:
+    """마크다운 헤더·기호를 제거하고 핵심 텍스트만 추출."""
+    # ### 헤더 제거
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
+    # 구분선 제거
+    text = re.sub(r"^-{3,}$", "", text, flags=re.MULTILINE)
+    # 프론트매터 제거
+    text = re.sub(r"^---[\s\S]*?---\n", "", text)
+    # 굵게·기울임 마커 제거
+    text = re.sub(r"\*{1,3}(.+?)\*{1,3}", r"\1", text)
+    # 연속 빈 줄 정리
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
-    parts.append(f"리스크 성향: {profile.risk_type}")
 
+def _build_customer_summary(profile: UserProfile, diagnosis: DiagnosisResult, survey_scores: dict) -> str:
+    parts = [f"만 {profile.age}세 {profile.job_type}, 리스크 성향: {profile.risk_type}"]
+    if diagnosis.monthly_shortfall > 0:
+        parts.append(f"월 {diagnosis.monthly_shortfall:,}원 노후 자금 부족")
     if profile.personal_pension == 0:
         parts.append("개인연금 미가입")
     if profile.health_issue:
         parts.append("건강 이슈 있음")
-    if diagnosis.monthly_shortfall > 0:
-        parts.append(f"월 {diagnosis.monthly_shortfall:,}원 노후 자금 부족")
-
+    weak = [_AREA_LABEL[k] for k in ["finance", "health", "leisure", "relation"]
+            if survey_scores.get(k, 100) < 60]
+    if weak:
+        parts.append(f"취약 영역: {', '.join(weak)}")
     return " / ".join(parts)
 
 
@@ -152,23 +165,46 @@ async def _rag_select_products(
     profile: UserProfile,
     diagnosis: DiagnosisResult,
     survey_scores: dict,
+    selected_areas: list[str] | None = None,
 ) -> list[ProductRecommendation]:
-    """RAG 검색 후 Claude로 최적 상품 3개 선별."""
+    """영역별 RAG 검색 후 Claude로 영역당 2개 이상 균형 추천."""
 
-    query = _build_search_query(profile, diagnosis, survey_scores)
+    # 선택 영역 결정 (없으면 survey_scores 키 기준)
+    areas = selected_areas or [k for k in ["finance", "health", "leisure", "relation"]
+                                if k in survey_scores]
+    if not areas:
+        areas = ["finance"]
 
-    # 실제 상품 + 가상 상품 각각 검색
-    real_docs = search_products(query, k=6, filter_virtual=False)
-    virtual_docs = search_products(query, k=4, filter_virtual=True)
-    all_docs = real_docs + virtual_docs
+    customer_summary = _build_customer_summary(profile, diagnosis, survey_scores)
+
+    # 영역별 RAG 검색 — 영역마다 3개씩
+    area_docs: dict[str, list] = {}
+    for area_key in areas:
+        label = _AREA_LABEL[area_key]
+        kw = _AREA_QUERY_KEYWORDS.get(area_key, label)
+        query = f"{customer_summary} / {kw}"
+        docs = search_products(query, k=4, filter_virtual=None)
+        # 해당 영역 docs 우선, 나머지로 보완
+        area_docs[area_key] = docs
+
+    # 전체 후보 풀 구성 (중복 제거)
+    seen_ids = set()
+    all_docs = []
+    for docs in area_docs.values():
+        for doc in docs:
+            pid = doc.metadata.get("product_id", "")
+            if pid not in seen_ids:
+                seen_ids.add(pid)
+                all_docs.append(doc)
 
     if not all_docs:
         return []
 
-    # 상품 컨텍스트 구성
+    # 상품 컨텍스트: 마크다운 제거 후 200자
     products_context = []
     for doc in all_docs:
         m = doc.metadata
+        clean = _clean_content(doc.page_content)
         products_context.append({
             "id": m.get("product_id", ""),
             "name": m.get("name", ""),
@@ -176,63 +212,71 @@ async def _rag_select_products(
             "category": m.get("category", ""),
             "area": m.get("area", ""),
             "is_virtual": m.get("is_virtual", False),
-            "content": doc.page_content[:300],
+            "content": clean[:250],
         })
 
-    # Claude에 최적 상품 3개 선별 요청
+    area_labels = [_AREA_LABEL[a] for a in areas]
+    total_needed = max(len(areas) * 2, 5)
+
     api_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY 또는 ANTHROPIC_AUTH_TOKEN 환경변수가 설정되지 않았습니다.")
     base_url = os.getenv("ANTHROPIC_BASE_URL")
-    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=800, timeout=120)
+    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=1200, timeout=120)
     if base_url:
         llm_kwargs["base_url"] = base_url
     llm = ChatAnthropic(**llm_kwargs)
 
-    system_prompt = """JB금융그룹 노후 준비 상담사입니다. 고객 상황에 맞는 금융 상품을 우선순위 순으로 5개 선별하여 JSON 배열로만 반환하세요.
+    system_prompt = f"""JB금융그룹 노후 준비 상담사입니다.
+고객이 선택한 진단 영역: {', '.join(area_labels)}
+
+아래 규칙을 반드시 지켜 JSON 배열만 반환하세요.
+규칙:
+1. 각 영역({', '.join(area_labels)})마다 최소 2개 이상 상품 포함
+2. 총 {total_needed}개 상품 선별 (중복 없이)
+3. priority: 1이 가장 중요, 순서대로 번호 부여
+4. description: 상품 핵심 특징을 한 문장으로 직접 작성 (마크다운 기호 금지)
+5. reason: 이 고객에게 추천하는 이유를 두 문장으로 작성 (마크다운 기호 금지)
+6. rate: 금리나 혜택 수치가 있으면 기재, 없으면 빈 문자열 ""
+7. JSON 배열 외 다른 텍스트 출력 금지
 
 형식:
-[{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"핵심특징 1줄","rate":"금리(없으면 상담 필요)","reason":"추천이유 2줄","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계","priority":1}]
+[{{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"한 문장","rate":"예) 연 3.5% 또는 연 최대 148만원 세액공제","reason":"두 문장 추천 이유","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계","priority":1}}]"""
 
-규칙: priority는 1(가장 적합)부터 5까지 순위 부여, 가상 상품 1~2개 포함, 취약 영역 관련 상품 우선, JSON만 출력"""
-
-    user_message = f"""고객 정보:
-{query}
-
+    user_message = f"""고객 정보: {customer_summary}
 월 부족액: {diagnosis.monthly_shortfall:,}원
 위험 영역: {', '.join(diagnosis.risk_areas) if diagnosis.risk_areas else '없음'}
 
-검색된 후보 상품 목록:
+후보 상품 목록:
 {json.dumps(products_context, ensure_ascii=False, indent=2)}
 
-위 고객에게 가장 적합한 상품을 우선순위 순으로 5개 선별하여 JSON 배열로만 반환하세요."""
+위 규칙에 따라 JSON 배열만 반환하세요."""
 
     def _parse_and_validate(raw: str) -> list[ProductRecommendation] | None:
-        """JSON 파싱 + 품질 검증. 실패 시 None 반환."""
         try:
             cleaned = raw.strip()
             if "```" in cleaned:
-                cleaned = cleaned.split("```")[1]
+                parts = cleaned.split("```")
+                cleaned = parts[1] if len(parts) > 1 else parts[0]
                 if cleaned.startswith("json"):
                     cleaned = cleaned[4:]
             parsed = json.loads(cleaned.strip())
             if not isinstance(parsed, list) or len(parsed) == 0:
                 return None
-            products = [
-                ProductRecommendation(
+            products = []
+            for i, p in enumerate(sorted(parsed, key=lambda x: x.get("priority", 99)), 1):
+                products.append(ProductRecommendation(
                     id=p.get("id", ""),
                     bank=p.get("bank", ""),
                     name=p.get("name", ""),
                     type=p.get("type", ""),
                     description=p.get("description", ""),
-                    rate=p.get("rate", "상담 필요"),
+                    rate=p.get("rate", ""),
                     reason=p.get("reason", ""),
                     is_virtual=p.get("is_virtual", False),
                     area=p.get("area"),
-                )
-                for p in sorted(parsed, key=lambda x: x.get("priority", 99))[:5]
-            ]
-            # 유효성 검증: 상품명과 추천 이유가 모두 있어야 통과
+                    priority=i,
+                ))
             if all(p.name and p.reason for p in products):
                 return products
             print("[recommend_agent] 검증 실패: 상품명 또는 추천이유 누락")
@@ -254,12 +298,12 @@ async def _rag_select_products(
     except Exception as e:
         print(f"[recommend_agent] 1차 호출 오류: {e}")
 
-    # 2차 재시도 (더 명확한 지시로)
+    # 2차 재시도
     try:
         retry_message = (
             f"{user_message}\n\n"
             "중요: 반드시 유효한 JSON 배열만 반환하세요. "
-            "설명 텍스트나 마크다운 없이 [ 로 시작하고 ] 로 끝나는 JSON만 출력하세요."
+            "[ 로 시작하고 ] 로 끝나는 JSON만 출력하세요."
         )
         response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
@@ -273,20 +317,22 @@ async def _rag_select_products(
     except Exception as e:
         print(f"[recommend_agent] 2차 호출 오류: {e}")
 
-    # 최종 폴백: RAG 결과 상위 5개 직접 반환
+    # 최종 폴백: RAG 결과 직접 반환
     fallback = []
-    for doc in all_docs[:5]:
+    for i, doc in enumerate(all_docs[:total_needed], 1):
         m = doc.metadata
+        clean = _clean_content(doc.page_content)
         fallback.append(ProductRecommendation(
             id=m.get("product_id", ""),
             bank=m.get("bank", ""),
             name=m.get("name", ""),
             type=m.get("category", ""),
-            description=doc.page_content[:120],
-            rate="상담 필요",
+            description=clean[:80],
+            rate="",
             reason="고객님의 노후 준비 상황에 적합한 상품입니다.",
             is_virtual=m.get("is_virtual", False),
             area=m.get("area"),
+            priority=i,
         ))
     return fallback
 
@@ -297,12 +343,13 @@ async def run_recommend(
     profile: UserProfile,
     diagnosis: DiagnosisResult,
     survey_scores: dict | None = None,
+    selected_areas: list[str] | None = None,
 ) -> RecommendResult:
     if survey_scores is None:
         survey_scores = {}
 
     action_cards = _build_action_cards(profile, diagnosis, survey_scores)
-    products = await _rag_select_products(profile, diagnosis, survey_scores)
+    products = await _rag_select_products(profile, diagnosis, survey_scores, selected_areas)
 
     return RecommendResult(
         action_cards=action_cards,

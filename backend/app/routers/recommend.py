@@ -8,6 +8,6 @@ router = APIRouter()
 @router.post("/recommend", response_model=RecommendResult)
 async def recommend(req: RecommendRequest):
     try:
-        return await run_recommend(req.profile, req.diagnosis, req.survey_scores or {})
+        return await run_recommend(req.profile, req.diagnosis, req.survey_scores or {}, req.selected_areas)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

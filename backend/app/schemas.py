@@ -108,7 +108,8 @@ class SimulationResult(BaseModel):
 class RecommendRequest(BaseModel):
     profile: UserProfile
     diagnosis: DiagnosisResult
-    survey_scores: Optional[dict] = None   # { finance: 72.5, health: 60.0, ... }
+    survey_scores: Optional[dict] = None        # { finance: 72.5, health: 60.0, ... }
+    selected_areas: Optional[list[str]] = None  # ['finance', 'health', ...]
 
 
 class ActionCard(BaseModel):

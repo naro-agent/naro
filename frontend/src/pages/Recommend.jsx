@@ -50,7 +50,7 @@ export default function Recommend() {
     if (!profile || !diagnosisPayload || recommend) return;
     setLoading(true);
     setError(null);
-    runRecommend(profile, diagnosisPayload, surveyScores)
+    runRecommend(profile, diagnosisPayload, surveyScores, selectedAreas)
       .then(d => setRecommend(d))
       .catch(e => setError(e?.message || '서버 연결에 실패했습니다.'))
       .finally(() => setLoading(false));
@@ -120,6 +120,7 @@ export default function Recommend() {
             <h3 className="section-title" style={{ marginTop: 8, marginBottom: 12 }}>JB금융 맞춤 상품</h3>
             {recommend.products.map((prod, i) => {
               const areaColor = AREA_COLOR[prod.area] || AREA_COLOR['재무'];
+              const priority = prod.priority || i + 1;
               return (
                 <div key={i} style={{
                   background: '#fff',
@@ -137,6 +138,14 @@ export default function Recommend() {
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {/* 우선순위 뱃지 */}
+                      <div style={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        background: priority === 1 ? '#1264D3' : priority === 2 ? '#3D8EFF' : '#8B95A1',
+                        color: '#fff', fontSize: 12, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>{priority}</div>
                       {prod.area && (
                         <span style={{
                           fontSize: 11, fontWeight: 700,
@@ -162,14 +171,14 @@ export default function Recommend() {
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: areaColor.text }}>{prod.rate}</span>
+                    {prod.rate && (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: areaColor.text }}>{prod.rate}</span>
+                    )}
                   </div>
 
                   {/* 본문 */}
                   <div style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                      <h4 style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, flex: 1 }}>{prod.name}</h4>
-                    </div>
+                    <h4 style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, marginBottom: 6 }}>{prod.name}</h4>
                     <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
                       {prod.description}
                     </p>
