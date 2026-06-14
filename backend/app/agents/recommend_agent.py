@@ -157,9 +157,9 @@ async def _rag_select_products(
 
     query = _build_search_query(profile, diagnosis, survey_scores)
 
-    # 실제 상품 + 가상 상품 각각 검색 (k 줄여서 컨텍스트 최소화)
-    real_docs = search_products(query, k=4, filter_virtual=False)
-    virtual_docs = search_products(query, k=3, filter_virtual=True)
+    # 실제 상품 + 가상 상품 각각 검색
+    real_docs = search_products(query, k=6, filter_virtual=False)
+    virtual_docs = search_products(query, k=4, filter_virtual=True)
     all_docs = real_docs + virtual_docs
 
     if not all_docs:
@@ -184,17 +184,17 @@ async def _rag_select_products(
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY 또는 ANTHROPIC_AUTH_TOKEN 환경변수가 설정되지 않았습니다.")
     base_url = os.getenv("ANTHROPIC_BASE_URL")
-    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=800, timeout=50)
+    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=800, timeout=120)
     if base_url:
         llm_kwargs["base_url"] = base_url
     llm = ChatAnthropic(**llm_kwargs)
 
-    system_prompt = """JB금융그룹 노후 준비 상담사입니다. 고객 상황에 맞는 최적 금융 상품 3개를 JSON 배열로만 반환하세요.
+    system_prompt = """JB금융그룹 노후 준비 상담사입니다. 고객 상황에 맞는 금융 상품을 우선순위 순으로 5개 선별하여 JSON 배열로만 반환하세요.
 
 형식:
-[{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"핵심특징 1줄","rate":"금리(없으면 상담 필요)","reason":"추천이유 2줄","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계"}]
+[{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"핵심특징 1줄","rate":"금리(없으면 상담 필요)","reason":"추천이유 2줄","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계","priority":1}]
 
-규칙: 가상 상품 1~2개 포함, 취약 영역 관련 상품 우선, JSON만 출력"""
+규칙: priority는 1(가장 적합)부터 5까지 순위 부여, 가상 상품 1~2개 포함, 취약 영역 관련 상품 우선, JSON만 출력"""
 
     user_message = f"""고객 정보:
 {query}
@@ -205,55 +205,90 @@ async def _rag_select_products(
 검색된 후보 상품 목록:
 {json.dumps(products_context, ensure_ascii=False, indent=2)}
 
-위 고객에게 가장 적합한 상품 3개를 선별하여 JSON 배열로만 반환하세요."""
+위 고객에게 가장 적합한 상품을 우선순위 순으로 5개 선별하여 JSON 배열로만 반환하세요."""
 
+    def _parse_and_validate(raw: str) -> list[ProductRecommendation] | None:
+        """JSON 파싱 + 품질 검증. 실패 시 None 반환."""
+        try:
+            cleaned = raw.strip()
+            if "```" in cleaned:
+                cleaned = cleaned.split("```")[1]
+                if cleaned.startswith("json"):
+                    cleaned = cleaned[4:]
+            parsed = json.loads(cleaned.strip())
+            if not isinstance(parsed, list) or len(parsed) == 0:
+                return None
+            products = [
+                ProductRecommendation(
+                    id=p.get("id", ""),
+                    bank=p.get("bank", ""),
+                    name=p.get("name", ""),
+                    type=p.get("type", ""),
+                    description=p.get("description", ""),
+                    rate=p.get("rate", "상담 필요"),
+                    reason=p.get("reason", ""),
+                    is_virtual=p.get("is_virtual", False),
+                    area=p.get("area"),
+                )
+                for p in sorted(parsed, key=lambda x: x.get("priority", 99))[:5]
+            ]
+            # 유효성 검증: 상품명과 추천 이유가 모두 있어야 통과
+            if all(p.name and p.reason for p in products):
+                return products
+            print("[recommend_agent] 검증 실패: 상품명 또는 추천이유 누락")
+            return None
+        except json.JSONDecodeError as e:
+            print(f"[recommend_agent] JSON 파싱 오류: {e}")
+            return None
+
+    # 1차 시도
     try:
         response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_message),
         ])
-        raw = response.content.strip()
+        products = _parse_and_validate(response.content)
+        if products:
+            return products
+        print("[recommend_agent] 1차 응답 검증 실패 → 재시도")
+    except Exception as e:
+        print(f"[recommend_agent] 1차 호출 오류: {e}")
 
-        # JSON 파싱
-        if "```" in raw:
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        selected = json.loads(raw.strip())
+    # 2차 재시도 (더 명확한 지시로)
+    try:
+        retry_message = (
+            f"{user_message}\n\n"
+            "중요: 반드시 유효한 JSON 배열만 반환하세요. "
+            "설명 텍스트나 마크다운 없이 [ 로 시작하고 ] 로 끝나는 JSON만 출력하세요."
+        )
+        response = await llm.ainvoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=retry_message),
+        ])
+        products = _parse_and_validate(response.content)
+        if products:
+            print("[recommend_agent] 2차 재시도 성공")
+            return products
+        print("[recommend_agent] 2차 재시도도 검증 실패 → 폴백")
+    except Exception as e:
+        print(f"[recommend_agent] 2차 호출 오류: {e}")
 
-        return [
-            ProductRecommendation(
-                id=p.get("id", ""),
-                bank=p.get("bank", ""),
-                name=p.get("name", ""),
-                type=p.get("type", ""),
-                description=p.get("description", ""),
-                rate=p.get("rate", "상담 필요"),
-                reason=p.get("reason", ""),
-                is_virtual=p.get("is_virtual", False),
-                area=p.get("area"),
-            )
-            for p in selected[:3]
-        ]
-
-    except Exception as _e:
-        import traceback; traceback.print_exc()
-        # 폴백: RAG 결과 상위 3개를 그대로 반환
-        fallback = []
-        for doc in all_docs[:3]:
-            m = doc.metadata
-            fallback.append(ProductRecommendation(
-                id=m.get("product_id", ""),
-                bank=m.get("bank", ""),
-                name=m.get("name", ""),
-                type=m.get("category", ""),
-                description=doc.page_content[:120],
-                rate="상담 필요",
-                reason="고객님의 노후 준비 상황에 적합한 상품입니다.",
-                is_virtual=m.get("is_virtual", False),
-                area=m.get("area"),
-            ))
-        return fallback
+    # 최종 폴백: RAG 결과 상위 5개 직접 반환
+    fallback = []
+    for doc in all_docs[:5]:
+        m = doc.metadata
+        fallback.append(ProductRecommendation(
+            id=m.get("product_id", ""),
+            bank=m.get("bank", ""),
+            name=m.get("name", ""),
+            type=m.get("category", ""),
+            description=doc.page_content[:120],
+            rate="상담 필요",
+            reason="고객님의 노후 준비 상황에 적합한 상품입니다.",
+            is_virtual=m.get("is_virtual", False),
+            area=m.get("area"),
+        ))
+    return fallback
 
 
 # ── 메인 엔트리포인트 ────────────────────────────────────────

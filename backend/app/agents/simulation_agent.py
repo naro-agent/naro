@@ -126,8 +126,55 @@ async def _generate_ai_insight(
             HumanMessage(content=context),
         ]
 
+        import re
+
+        def _clean_markdown(text: str) -> str:
+            """마크다운 기호 제거."""
+            text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+            text = re.sub(r'\*{1,3}([^*]+)\*{1,3}', r'\1', text)
+            text = re.sub(r'^---+$', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^--+', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^[\-\*]\s+', '', text, flags=re.MULTILINE)
+            return re.sub(r'\n{3,}', '\n\n', text).strip()
+
+        def _has_markdown(text: str) -> bool:
+            return bool(re.search(r'(^#{1,6}\s|\*{2,}|^---+$|^--)', text, re.MULTILINE))
+
+        def _is_valid_insight(text: str) -> bool:
+            return len(text) >= 50 and any('가' <= c <= '힣' for c in text)
+
+        # 1차 응답
         response = await llm.ainvoke(messages)
-        return response.content.strip()
+        insight = response.content.strip()
+
+        # 마크다운 제거
+        if _has_markdown(insight):
+            print("[simulation_agent] 마크다운 감지 → 정제 시도")
+            insight = _clean_markdown(insight)
+
+        # 품질 검증 통과 시 반환
+        if _is_valid_insight(insight):
+            return insight
+
+        # 2차 재시도
+        print("[simulation_agent] 인사이트 품질 미달 → 재시도")
+        retry_messages = [
+            SystemMessage(content=(
+                "당신은 JB금융그룹의 노후 설계 전문가입니다. "
+                "고객의 시뮬레이션 결과에 대해 따뜻하고 명확한 3~4문장으로만 작성하세요. "
+                "마크다운, 특수기호, 별표, 샵(#) 등은 절대 사용하지 마세요. "
+                "순수 텍스트 문장만 작성하세요."
+            )),
+            HumanMessage(content=context),
+        ]
+        retry_response = await llm.ainvoke(retry_messages)
+        retry_insight = _clean_markdown(retry_response.content.strip())
+        if _is_valid_insight(retry_insight):
+            print("[simulation_agent] 재시도 성공")
+            return retry_insight
+
+        print("[simulation_agent] 재시도도 미달 → 빈 문자열 반환")
+        return ""
 
     except Exception:
         return ""

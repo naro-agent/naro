@@ -130,6 +130,7 @@ class ProductRecommendation(BaseModel):
     reason: str
     is_virtual: bool = False          # 가상 상품 여부 (JB금융 미출시 기획 상품)
     area: Optional[str] = None        # 관련 노후준비 영역 (재무/건강/여가활동/대인관계)
+    priority: int = 1                 # 추천 우선순위 (1이 가장 높음)
 
 
 class RecommendResult(BaseModel):

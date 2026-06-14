@@ -154,6 +154,17 @@ async def run_chat(req: ChatRequest) -> ChatResponse:
         resp = await llm.ainvoke(messages)
         reply = resp.content.strip()
 
+        # 품질 검증: 너무 짧거나 한국어 없으면 재시도
+        if not _is_valid_reply(reply):
+            print(f"[chat_agent] 응답 품질 미달({len(reply)}자) → 재시도")
+            retry_messages = messages[:]
+            retry_messages[-1] = HumanMessage(
+                content=req.message + "\n\n(반드시 한국어로 3문장 이상 답변하세요.)"
+            )
+            resp2 = await llm.ainvoke(retry_messages)
+            retry_reply = resp2.content.strip()
+            reply = retry_reply if _is_valid_reply(retry_reply) else reply
+
     except Exception as e:
         print(f"[chat_agent ERROR] {type(e).__name__}: {e}")
         reply = _fallback_reply(req.message)
@@ -221,6 +232,14 @@ async def _generate_proactive_summary(req: ChatRequest) -> ChatResponse:
 
         resp = await llm.ainvoke([system, human])
         reply = resp.content.strip()
+
+        # 품질 검증: 너무 짧거나 한국어 없으면 재시도
+        if not _is_valid_reply(reply):
+            print(f"[chat_agent proactive] 응답 품질 미달({len(reply)}자) → 재시도")
+            retry_human = HumanMessage(content=human.content + "\n\n(반드시 한국어로 4문장 이상 작성하세요.)")
+            resp2 = await llm.ainvoke([system, retry_human])
+            retry_reply = resp2.content.strip()
+            reply = retry_reply if _is_valid_reply(retry_reply) else reply
 
     except Exception as e:
         print(f"[chat_agent proactive ERROR] {type(e).__name__}: {e}")
@@ -313,6 +332,11 @@ def _fallback_reply(message: str) -> str:
         return "은퇴 준비 점수는 재무 상태, 생애이벤트 대비, 소비 패턴, 건강 상태 4가지 영역을 종합 평가합니다. 취약 영역부터 집중 개선하시면 효과적입니다."
     else:
         return "노후 준비와 관련한 질문을 자유롭게 해주세요. 연금, 자산 관리, 생애 이벤트 대비 등 다양한 주제로 도움을 드릴 수 있습니다."
+
+
+def _is_valid_reply(text: str) -> bool:
+    """응답이 충분한 길이이고 한국어를 포함하는지 검증."""
+    return len(text) >= 50 and any('가' <= c <= '힣' for c in text)
 
 
 def _get_suggestions(req: ChatRequest) -> list[str]:

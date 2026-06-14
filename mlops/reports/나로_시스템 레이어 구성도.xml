@@ -1,0 +1,224 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="NaRo System Architecture" id="naro-arch-v2">
+    <mxGraphModel dx="1994" dy="989" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 제목 -->
+        <mxCell id="title" value="나로 (NaRo) 시스템 레이어 아키텍처" style="text;html=1;fontSize=28;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="16" width="1560" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 메인 레이어 영역 (x=30, width=1100) -->
+        <!-- ══════════════════════════════════════════════════════ -->
+
+        <!-- Layer 1: Interface / UI  (y=70, h=80) -->
+        <mxCell id="layer1_bg" value="" style="rounded=0;fillColor=#F2F4F6;strokeColor=#8B95A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="70" width="1100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1_label" value="사용자&#xa;인터페이스" style="text;html=1;fontSize=17;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="70" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="l1_c" value="노후 준비 진단 흐름 (동의 → 영역 선택 → 설문 → 대시보드 → 진단 → 시뮬레이션 → 추천 → AI 상담)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="195" y="93" width="920" height="38" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표 1↔2 -->
+        <mxCell id="flow1" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="150" as="sourcePoint" />
+            <mxPoint x="555" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow1_label" value="사용자 입력 / 화면 렌더링" style="text;html=1;fontSize=15;fontColor=#191F28;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="567" y="155" width="220" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 2: Presentation  (y=190, h=80) -->
+        <mxCell id="layer2_bg" value="" style="rounded=0;fillColor=#F2F4F6;strokeColor=#8B95A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="190" width="1100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2_label" value="프레젠테이션&#xa;레이어" style="text;html=1;fontSize=17;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="190" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="l2_c1" value="페이지 라우팅" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="195" y="211" width="172" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l2_c2" value="전역 상태 관리" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="378" y="211" width="172" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l2_c3" value="데이터 시각화" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="561" y="211" width="172" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l2_c4" value="API 통신" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="744" y="211" width="172" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l2_c5" value="사용자 입력 검증" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="927" y="211" width="172" height="38" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표 2↔3 -->
+        <mxCell id="flow2" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="270" as="sourcePoint" />
+            <mxPoint x="555" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow2_label" value="API 요청 / API 응답" style="text;html=1;fontSize=15;fontColor=#191F28;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="567" y="276" width="190" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 3: Application Service  (y=310, h=80) -->
+        <mxCell id="layer3_bg" value="" style="rounded=0;fillColor=#F2F4F6;strokeColor=#8B95A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="310" width="1100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3_label" value="애플리케이션&#xa;서비스 레이어" style="text;html=1;fontSize=17;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="310" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="l3_c1" value="REST API 엔드포인트" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="195" y="331" width="200" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l3_c2" value="생애 현금흐름 시뮬레이션" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="406" y="331" width="230" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l3_c3" value="RAG 기반 상품 추천" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="647" y="331" width="200" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l3_c4" value="AI 상담 (스트리밍)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="858" y="331" width="200" height="38" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표 3↔4 -->
+        <mxCell id="flow3" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="390" as="sourcePoint" />
+            <mxPoint x="555" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow3_label" value="조회·저장 요청 / 데이터 반환" style="text;html=1;fontSize=15;fontColor=#191F28;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="567" y="396" width="240" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 4: Persistence  (y=430, h=100) -->
+        <mxCell id="layer4_bg" value="" style="rounded=0;fillColor=#F2F4F6;strokeColor=#8B95A1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="430" width="1100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="layer4_label" value="데이터·모델&#xa;저장 레이어" style="text;html=1;fontSize=17;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="430" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="l4_c1" value="상품 벡터 스토어&#xa;(RAG 검색)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="195" y="455" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="l4_c3" value="실험 추적&#xa;(모델 메타데이터)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="398" y="455" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="l4_c4" value="학습 모델&#xa;(영역별 최적 모델)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="601" y="455" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="l4_c5" value="피드백 로그&#xa;(사용자 응답 기록)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="804" y="455" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="l4_c6" value="상품 문서&#xa;(RAG 원본)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1007" y="455" width="103" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표 MLOps→Persistence: 단방향 점선 -->
+        <mxCell id="flow4" value="" style="endArrow=block;endFill=1;html=1;strokeWidth=2;dashed=1;strokeColor=#333333;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="650" as="sourcePoint" />
+            <mxPoint x="555" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow4_label" value="최적 모델 등록" style="text;html=1;fontSize=15;fontColor=#191F28;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="567" y="575" width="150" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 5: MLOps  (y=650, h=80) -->
+        <mxCell id="layer5_bg" value="" style="rounded=0;fillColor=#F2F4F6;strokeColor=#8B95A1;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="650" width="1100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer5_label" value="MLOps&#xa;(오프라인 파이프라인)" style="text;html=1;fontSize=17;fontStyle=1;fontColor=#191F28;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="650" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="l5_c1" value="피처 엔지니어링" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="195" y="671" width="200" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l5_c2" value="모델 학습 (5-Fold CV)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="406" y="671" width="220" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l5_c3" value="피처 중요도 분석 (SHAP)" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="637" y="671" width="240" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="l5_c4" value="파이프라인 버전 관리" style="rounded=1;fillColor=#ffffff;strokeColor=#8B95A1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="888" y="671" width="200" height="38" as="geometry" />
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- External 패널 (x=1200) -->
+        <!-- ══════════════════════════════════════════════════════ -->
+
+        <!-- Cloud Infrastructure — y=70, Layer 1·2 대응 -->
+        <mxCell id="ext_infra_bg" value="Cloud Infrastructure" style="swimlane;fillColor=#343a40;strokeColor=#343a40;fontStyle=1;startSize=34;fontColor=#ffffff;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="70" width="360" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c4" value="프론트엔드 호스팅 (Vercel)" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;" vertex="1" parent="ext_infra_bg">
+          <mxGeometry x="16" y="40" width="328" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c5" value="백엔드 호스팅 (Railway)" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;" vertex="1" parent="ext_infra_bg">
+          <mxGeometry x="16" y="80" width="328" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- LLM · AI Services — y=310, Layer 3 대응 -->
+        <mxCell id="ext_ai_bg" value="LLM · AI Services" style="swimlane;fillColor=#343a40;strokeColor=#343a40;fontStyle=1;startSize=34;fontColor=#ffffff;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="290" width="360" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c1" value="거대언어모델 추론 (Claude API)" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;fontStyle=1;" vertex="1" parent="ext_ai_bg">
+          <mxGeometry x="16" y="40" width="328" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c3" value="한국어 임베딩 (HuggingFace)" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;" vertex="1" parent="ext_ai_bg">
+          <mxGeometry x="16" y="80" width="328" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- External Data Sources — y=630, Layer 5 대응 -->
+        <mxCell id="ext_data_bg" value="External Data Sources" style="swimlane;fillColor=#343a40;strokeColor=#343a40;fontStyle=1;startSize=34;fontColor=#ffffff;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="630" width="360" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c6" value="노후준비실태조사 (KReIS 10차)" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;" vertex="1" parent="ext_data_bg">
+          <mxGeometry x="16" y="40" width="328" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_c7" value="JB금융 상품 데이터" style="rounded=1;fillColor=#dae8fc;strokeColor=#1264D3;fontSize=14;" vertex="1" parent="ext_data_bg">
+          <mxGeometry x="16" y="80" width="328" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 외부 패널 ↔ 레이어 연결 화살표 (수평) -->
+        <!-- ══════════════════════════════════════════════════════ -->
+
+        <!-- Application Layer ↔ LLM: 양방향 수평 (y=350) -->
+        <mxCell id="ext_conn1" value="" style="endArrow=block;endFill=1;startArrow=block;startFill=1;html=1;strokeColor=#333333;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1130" y="350" as="sourcePoint" />
+            <mxPoint x="1200" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ext_conn1_label" value="AI 추론 요청 / 응답" style="text;html=1;fontSize=14;fontColor=#191F28;align=center;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="320" width="200" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- External Data → MLOps: 단방향 점선 수평 (y=690) -->
+        <mxCell id="ext_conn2" value="" style="endArrow=block;endFill=1;html=1;dashed=1;strokeColor=#333333;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1200" y="690" as="sourcePoint" />
+            <mxPoint x="1130" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ext_conn2_label" value="학습 데이터 공급" style="text;html=1;fontSize=14;fontColor=#191F28;align=center;verticalAlign=bottom;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="660" width="200" height="28" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
