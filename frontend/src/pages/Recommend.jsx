@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Landmark, PiggyBank, BarChart3, ShieldCheck, Building2, Info, TrendingUp, Lightbulb, AlertTriangle, MessageCircle, ClipboardList } from 'lucide-react';
+import { Lightbulb, AlertTriangle, MessageCircle, ClipboardList } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { runRecommend } from '../api/apiClient.js';
 import { SURVEY_DATA } from '../data/surveyData.js';
@@ -28,16 +28,6 @@ function buildDiagnosisFromSurvey(surveyScores, selectedAreas) {
     summary: '',
   };
 }
-
-const CATEGORY_ICON = {
-  연금: Landmark, 저축: PiggyBank, 지출관리: BarChart3, 보험: ShieldCheck, 자산관리: Building2,
-};
-
-const BANK_COLOR = {
-  '광주은행': '#1264D3',
-  '전북은행': '#0F52B8',
-  'JB우리캐피탈': '#3D8EFF',
-};
 
 // 영역별 컬러 (설문조사·진단 결과와 통일)
 const AREA_COLOR = {
@@ -113,9 +103,9 @@ export default function Recommend() {
       <div style={{ padding: '20px 20px 0' }}>
         {/* 헤드 */}
         <div className="card-primary" style={{ marginBottom: 16 }}>
-          <p style={{ opacity: 0.85, fontSize: 13, marginBottom: 6 }}>AI 분석 기반 맞춤 액션 플랜</p>
+          <p style={{ opacity: 0.85, fontSize: 13, marginBottom: 6 }}>AI 분석 기반 맞춤 추천 상품</p>
           <h2 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.4 }}>
-            지금 바로 시작할 수 있는<br />우선순위 행동을 알려드립니다
+            진단 결과에 맞는<br />상품을 추천해 드립니다
           </h2>
           {diagnosisPayload && (
             <p style={{ opacity: 0.8, fontSize: 13, marginTop: 8 }}>
@@ -123,49 +113,6 @@ export default function Recommend() {
             </p>
           )}
         </div>
-
-        {/* 액션 카드 */}
-        <h3 className="section-title" style={{ marginBottom: 12 }}>우선순위 액션</h3>
-        {recommend.action_cards.map((card, i) => (
-          <div key={i} className="card" style={{ marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-              <div style={{
-                width: 44, height: 44, background: 'var(--primary-light)', borderRadius: 12,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                {React.createElement(CATEGORY_ICON[card.category] || Info, { size: 20, color: 'var(--primary)', strokeWidth: 1.8 })}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <div style={{
-                    width: 20, height: 20, background: 'var(--primary)', borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0,
-                  }}>{card.priority}</div>
-                  <span style={{ fontWeight: 700, fontSize: 16 }}>{card.title}</span>
-                </div>
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
-                  {card.description}
-                </p>
-                <div style={{
-                  background: 'var(--bg-section)', borderRadius: 8, padding: '8px 12px',
-                  fontSize: 13, color: 'var(--primary)', fontWeight: 600, marginBottom: 12,
-                  display: 'flex', alignItems: 'center', gap: 6,
-                }}>
-                  <TrendingUp size={14} color="var(--primary)" />
-                  예상 효과: {card.expected_effect}
-                </div>
-                <button
-                  className="btn-secondary"
-                  style={{ height: 40, fontSize: 14, borderRadius: 8 }}
-                  onClick={() => navigate('/chat')}
-                >
-                  {card.action_label} →
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
 
         {/* JB금융 상품 */}
         {recommend.products.length > 0 && (
