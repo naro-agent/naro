@@ -10,13 +10,10 @@ load_dotenv()
 
 app = FastAPI(title="나로(NaRo) API", version="1.0.0")
 
-_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-_allowed_origins = [_frontend_url, "http://localhost:5173"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_allowed_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
