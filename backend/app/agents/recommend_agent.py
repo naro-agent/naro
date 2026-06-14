@@ -177,15 +177,21 @@ async def _rag_select_products(
 
     customer_summary = _build_customer_summary(profile, diagnosis, survey_scores)
 
-    # 영역별 RAG 검색 — 영역마다 3개씩
+    # 영역별 RAG 검색 — 해당 영역 메타데이터 필터 적용 후 부족분은 전체 검색으로 보완
     area_docs: dict[str, list] = {}
     for area_key in areas:
         label = _AREA_LABEL[area_key]
         kw = _AREA_QUERY_KEYWORDS.get(area_key, label)
         query = f"{customer_summary} / {kw}"
-        docs = search_products(query, k=4, filter_virtual=None)
-        # 해당 영역 docs 우선, 나머지로 보완
+        # 해당 영역 상품만 우선 검색
+        docs = search_products(query, k=4, filter_area=label)
+        if len(docs) < 2:
+            # 영역 상품이 부족하면 필터 없이 보완
+            extra = search_products(query, k=4)
+            seen = {d.metadata.get("product_id") for d in docs}
+            docs += [d for d in extra if d.metadata.get("product_id") not in seen]
         area_docs[area_key] = docs
+        print(f"[recommend_agent] 영역 '{label}' RAG 결과: {[d.metadata.get('name') for d in docs]}")
 
     # 전체 후보 풀 구성 (중복 제거)
     seen_ids = set()
@@ -222,7 +228,7 @@ async def _rag_select_products(
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY 또는 ANTHROPIC_AUTH_TOKEN 환경변수가 설정되지 않았습니다.")
     base_url = os.getenv("ANTHROPIC_BASE_URL")
-    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=1200, timeout=120)
+    llm_kwargs = dict(model="claude-sonnet-4-6", api_key=api_key, max_tokens=2500, timeout=120)
     if base_url:
         llm_kwargs["base_url"] = base_url
     llm = ChatAnthropic(**llm_kwargs)
@@ -243,23 +249,37 @@ async def _rag_select_products(
 형식:
 [{{"id":"","name":"","bank":"","type":"적금|예금|펀드|보험|신탁|연금","description":"한 문장","rate":"예) 연 3.5% 또는 연 최대 148만원 세액공제","reason":"두 문장 추천 이유","is_virtual":true|false,"area":"재무|건강|여가활동|대인관계","priority":1}}]"""
 
+    # 상품 목록을 영역별로 그룹화
+    area_grouped = {}
+    for p in products_context:
+        a = p.get("area", "재무")
+        area_grouped.setdefault(a, []).append(p)
+    grouped_str = ""
+    for a, ps in area_grouped.items():
+        grouped_str += f"\n[{a} 영역 상품]\n"
+        grouped_str += json.dumps(ps, ensure_ascii=False, indent=2) + "\n"
+
     user_message = f"""고객 정보: {customer_summary}
 월 부족액: {diagnosis.monthly_shortfall:,}원
 위험 영역: {', '.join(diagnosis.risk_areas) if diagnosis.risk_areas else '없음'}
 
-후보 상품 목록:
-{json.dumps(products_context, ensure_ascii=False, indent=2)}
-
+후보 상품 목록 (영역별):
+{grouped_str}
 위 규칙에 따라 JSON 배열만 반환하세요."""
 
     def _parse_and_validate(raw: str) -> list[ProductRecommendation] | None:
         try:
             cleaned = raw.strip()
-            if "```" in cleaned:
-                parts = cleaned.split("```")
-                cleaned = parts[1] if len(parts) > 1 else parts[0]
-                if cleaned.startswith("json"):
-                    cleaned = cleaned[4:]
+            # ```json ... ``` 블록 추출
+            fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", cleaned)
+            if fence_match:
+                cleaned = fence_match.group(1).strip()
+            else:
+                # [ ... ] 배열 부분만 추출
+                arr_match = re.search(r"(\[[\s\S]*\])", cleaned)
+                if arr_match:
+                    cleaned = arr_match.group(1).strip()
+            print(f"[recommend_agent] 파싱 시도 (앞 200자): {cleaned[:200]}")
             parsed = json.loads(cleaned.strip())
             if not isinstance(parsed, list) or len(parsed) == 0:
                 return None
@@ -282,21 +302,24 @@ async def _rag_select_products(
             print("[recommend_agent] 검증 실패: 상품명 또는 추천이유 누락")
             return None
         except json.JSONDecodeError as e:
-            print(f"[recommend_agent] JSON 파싱 오류: {e}")
+            print(f"[recommend_agent] JSON 파싱 오류: {e}\n원본(앞 300자): {raw[:300]}")
             return None
 
     # 1차 시도
     try:
+        print(f"[recommend_agent] Claude 호출 시작 (영역: {areas}, 상품 풀: {len(all_docs)}개)")
         response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_message),
         ])
+        print(f"[recommend_agent] 1차 응답 수신 (길이: {len(response.content)}자)")
         products = _parse_and_validate(response.content)
         if products:
+            print(f"[recommend_agent] 1차 성공: {len(products)}개 상품")
             return products
         print("[recommend_agent] 1차 응답 검증 실패 → 재시도")
     except Exception as e:
-        print(f"[recommend_agent] 1차 호출 오류: {e}")
+        print(f"[recommend_agent] 1차 호출 오류: {type(e).__name__}: {e}")
 
     # 2차 재시도
     try:

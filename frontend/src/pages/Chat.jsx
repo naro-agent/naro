@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { Bot, ArrowUp, RefreshCw, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
+import { Bot, ArrowUp, RefreshCw, ThumbsUp, ThumbsDown, Sparkles, MessageCircle, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 import { sendChat, submitFeedback } from '../api/apiClient.js';
 
@@ -92,12 +92,13 @@ export default function Chat() {
   const navigate = useNavigate();
   const { profile, diagnosis, simulation, surveyScores } = useAppContext();
 
-  const INIT_MSG = { role: 'assistant', content: '안녕하세요! 진단 결과나 노후 준비에 대해 궁금한 점을 자유롭게 질문해 주세요.' };
+  const FREE_INIT_MSG = { role: 'assistant', content: '안녕하세요! 진단 결과나 노후 준비에 대해 궁금한 점을 자유롭게 질문해 주세요.' };
 
-  const [messages, setMessages] = useState([INIT_MSG]);
+  // mode: null(선택 전) | 'free' | 'proactive'
+  const [mode, setMode] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState('free'); // 'free' | 'proactive'
   const [quickOptions, setQuickOptions] = useState([]);
   const [proactiveStep, setProactiveStep] = useState(0);
   const [proactiveQuestions, setProactiveQuestions] = useState([]);
@@ -125,9 +126,18 @@ export default function Chat() {
     }
   };
 
-  const resetChat = (newMode = 'free') => {
-    setMode(newMode);
-    setMessages([INIT_MSG]);
+  const resetChat = () => {
+    setMode(null);
+    setMessages([]);
+    setInput('');
+    setQuickOptions([]);
+    setProactiveStep(0);
+    setProactiveQuestions([]);
+  };
+
+  const startFree = () => {
+    setMode('free');
+    setMessages([FREE_INIT_MSG]);
     setInput('');
     setQuickOptions([]);
     setProactiveStep(0);
@@ -191,15 +201,16 @@ export default function Chat() {
 
   const startProactive = async () => {
     setMode('proactive');
-    setMessages([INIT_MSG]);
+    setMessages([]);
     setInput('');
     setQuickOptions([]);
     setProactiveStep(0);
+    setProactiveQuestions([]);
     setLoading(true);
 
     try {
       const resp = await sendChat('시작', profile, diagnosis, simulation, surveyScores, [], 'proactive');
-      setMessages([INIT_MSG, { role: 'assistant', content: resp.reply, message_id: resp.message_id }]);
+      setMessages([{ role: 'assistant', content: resp.reply, message_id: resp.message_id }]);
       if (resp.proactive_questions) {
         setProactiveQuestions(resp.proactive_questions);
       }
@@ -208,7 +219,7 @@ export default function Chat() {
         setProactiveStep(resp.proactive_step || 1);
       }
     } catch {
-      setMessages([INIT_MSG, { role: 'assistant', content: '죄송합니다. 일시적인 오류가 발생했습니다.' }]);
+      setMessages([{ role: 'assistant', content: '죄송합니다. 일시적인 오류가 발생했습니다.' }]);
     } finally {
       setLoading(false);
     }
@@ -218,30 +229,149 @@ export default function Chat() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
+  // ── 모드 선택 화면 ──────────────────────────────────────────
+  if (mode === null) {
+    return (
+      <div style={{ background: 'var(--bg-page)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="app-header">
+          <button className="back-btn" onClick={() => navigate('/recommend')}>‹</button>
+          <span className="header-title">AI 노후 상담</span>
+          <div className="header-right" />
+        </div>
+
+        <div style={{ padding: '24px 20px', flex: 1 }}>
+          {/* 헤드 */}
+          <div className="card-primary" style={{ marginBottom: 24 }}>
+            <p style={{ opacity: 0.8, fontSize: 13, marginBottom: 6 }}>나로(NaRo) AI 어드바이저</p>
+            <h2 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.4 }}>
+              어떤 방식으로<br />상담받으시겠어요?
+            </h2>
+            {surveyScores && (
+              <p style={{ opacity: 0.75, fontSize: 12, marginTop: 8 }}>
+                설문 완료 · 취약 영역: {Object.entries(surveyScores).filter(([, v]) => v < 60).map(([k]) => ({finance:'재무',health:'건강',leisure:'여가활동',relation:'대인관계'})[k]).join(', ') || '없음'}
+              </p>
+            )}
+          </div>
+
+          {/* 가이드 상담 카드 */}
+          <button
+            onClick={startProactive}
+            disabled={!surveyScores}
+            style={{
+              width: '100%', textAlign: 'left', background: '#fff',
+              border: surveyScores ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+              borderRadius: 16, padding: '20px', marginBottom: 12,
+              cursor: surveyScores ? 'pointer' : 'not-allowed',
+              boxShadow: surveyScores ? 'var(--shadow-card)' : 'none',
+              fontFamily: 'inherit',
+              opacity: surveyScores ? 1 : 0.5,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: surveyScores ? 'var(--primary)' : 'var(--bg-section)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 14, flexShrink: 0,
+              }}>
+                <Sparkles size={22} color={surveyScores ? '#fff' : 'var(--text-hint)'} strokeWidth={1.8} />
+              </div>
+              <ChevronRight size={18} color={surveyScores ? 'var(--primary)' : 'var(--text-hint)'} style={{ marginTop: 4 }} />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>
+              AI 분석 기반 가이드 상담
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+              진단 결과를 바탕으로 AI가 맞춤 질문을 생성합니다.<br />
+              답변하시면 현재 상황에 맞는 종합 분석을 드려요.
+            </div>
+            {surveyScores && (() => {
+              const weakAreas = Object.entries(surveyScores)
+                .filter(([, v]) => v < 60)
+                .map(([k]) => ({finance:'재무',health:'건강',leisure:'여가활동',relation:'대인관계'})[k]);
+              return (
+                <div style={{
+                  marginTop: 14, background: 'var(--primary-light)', borderRadius: 10,
+                  padding: '8px 12px', fontSize: 12, color: 'var(--primary)', fontWeight: 600,
+                }}>
+                  <Sparkles size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  {weakAreas.length > 0
+                    ? `${weakAreas.join(', ')} 취약 영역 중심으로 질문이 생성됩니다`
+                    : '전체 영역 균형 상담을 진행합니다'}
+                </div>
+              );
+            })()}
+            {!surveyScores && (
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-hint)' }}>
+                설문 완료 후 이용 가능합니다
+              </div>
+            )}
+          </button>
+
+          {/* 자유 상담 카드 */}
+          <button
+            onClick={startFree}
+            style={{
+              width: '100%', textAlign: 'left', background: '#fff',
+              border: '1.5px solid var(--border)',
+              borderRadius: 16, padding: '20px', marginBottom: 24,
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-card)',
+              fontFamily: 'inherit',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: 'var(--bg-section)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 14, flexShrink: 0,
+              }}>
+                <MessageCircle size={22} color="var(--text-secondary)" strokeWidth={1.8} />
+              </div>
+              <ChevronRight size={18} color="var(--text-secondary)" style={{ marginTop: 4 }} />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>
+              자유 질문
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+              연금, 자산 관리, 의료비, 생애 이벤트 등<br />
+              노후 준비 관련 궁금한 점을 자유롭게 물어보세요.
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 채팅 화면 ────────────────────────────────────────────────
   return (
     <div style={{ background: 'var(--bg-page)', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* 헤더 */}
       <div className="app-header">
-        <button className="back-btn" onClick={() => navigate('/recommend')}>‹</button>
+        <button className="back-btn" onClick={resetChat}>‹</button>
         <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: 15, fontWeight: 700 }}>AI 노후 상담</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>
+            {mode === 'proactive' ? 'AI 가이드 상담' : '자유 질문'}
+          </div>
           <div style={{ fontSize: 11, color: 'var(--success)' }}>● 온라인</div>
         </div>
         <button
-          onClick={() => resetChat('free')}
+          onClick={resetChat}
           style={{ width: 40, height: 40, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}
         >
           <RefreshCw size={18} color="var(--text-secondary)" strokeWidth={1.8} />
         </button>
       </div>
 
-      {/* 진단 컨텍스트 배너 */}
-      {diagnosis && (
-        <div style={{ background: 'var(--primary-light)', padding: '8px 16px', fontSize: 12, color: 'var(--primary)', fontWeight: 600, display: 'flex', gap: 12 }}>
-          <span>진단 점수 {diagnosis.total_score}점</span>
-          {diagnosis.risk_areas?.length > 0 && (
-            <span>취약 영역: {diagnosis.risk_areas.join(', ')}</span>
-          )}
+      {/* 모드 배지 */}
+      {mode === 'proactive' && (
+        <div style={{
+          background: 'var(--primary-light)', padding: '8px 16px',
+          fontSize: 12, color: 'var(--primary)', fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <Sparkles size={12} />
+          진단 결과 기반 맞춤 가이드 상담 · 질문에 답하시면 종합 분석을 드립니다
         </div>
       )}
 
@@ -267,47 +397,20 @@ export default function Chat() {
           </div>
         )}
 
-        {/* 첫 화면 — 모드 선택 + 추천 질문 */}
-        {messages.length === 1 && !loading && (
-          <div style={{ margin: '8px 0 12px 0' }}>
-            {/* 가이드 상담 배너 */}
-            {diagnosis && (
-              <div style={{
-                margin: '0 0 12px 0', background: 'var(--primary-light)',
-                border: '1.5px solid var(--primary)', borderRadius: 14,
-                padding: '14px 16px',
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 6 }}>
-                  <Sparkles size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                  AI 가이드 상담
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>
-                  진단 결과를 바탕으로 AI가 맞춤 질문을 드립니다. 답변하시면 종합 분석을 제공해드려요.
-                </div>
-                <button onClick={startProactive} style={{
-                  background: 'var(--primary)', color: '#fff', border: 'none',
-                  borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'inherit', width: '100%',
-                }}>
-                  가이드 상담 시작하기
-                </button>
-              </div>
-            )}
-
-            {/* 자유 질문 목록 */}
-            <div style={{ paddingLeft: 40, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {QUICK_QUESTIONS.slice(0, diagnosis ? 5 : 3).map((q, i) => (
-                <button key={i} onClick={() => sendMessage(q)} style={{
-                  border: '1.5px solid var(--border)', background: 'var(--bg-card)',
-                  borderRadius: 12, padding: '11px 14px', fontSize: 13,
-                  cursor: 'pointer', color: 'var(--text-primary)', textAlign: 'left',
-                  fontFamily: 'inherit', transition: 'border-color 0.15s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                >{q}</button>
-              ))}
-            </div>
+        {/* 자유 모드 — 첫 화면 추천 질문 */}
+        {mode === 'free' && messages.length === 1 && !loading && (
+          <div style={{ paddingLeft: 40, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+            {QUICK_QUESTIONS.map((q, i) => (
+              <button key={i} onClick={() => sendMessage(q)} style={{
+                border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                borderRadius: 12, padding: '11px 14px', fontSize: 13,
+                cursor: 'pointer', color: 'var(--text-primary)', textAlign: 'left',
+                fontFamily: 'inherit', transition: 'border-color 0.15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+              >{q}</button>
+            ))}
           </div>
         )}
 
@@ -340,7 +443,7 @@ export default function Chat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="궁금한 것을 질문해보세요..."
+          placeholder={mode === 'proactive' ? '선택지를 고르거나 직접 입력하세요...' : '궁금한 것을 질문해보세요...'}
           rows={1}
           style={{
             flex: 1, background: 'var(--bg-input)', border: 'none',

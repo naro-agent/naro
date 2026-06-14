@@ -184,17 +184,32 @@ def rebuild_vectorstore() -> Chroma:
     return get_vectorstore()
 
 
-def search_products(query: str, k: int = 6, filter_virtual: Optional[bool] = None) -> list[Document]:
+def search_products(
+    query: str,
+    k: int = 6,
+    filter_virtual: Optional[bool] = None,
+    filter_area: Optional[str] = None,
+) -> list[Document]:
     """
     쿼리와 유사한 상품 문서를 검색.
     filter_virtual=True  → 가상 상품만
     filter_virtual=False → 실제 상품만
     filter_virtual=None  → 전체
+    filter_area="건강"   → 해당 영역 상품만
     """
     vs = get_vectorstore()
-    where = None
+    conditions = []
     if filter_virtual is not None:
-        where = {"is_virtual": filter_virtual}
+        conditions.append({"is_virtual": {"$eq": filter_virtual}})
+    if filter_area is not None:
+        conditions.append({"area": {"$eq": filter_area}})
+
+    if len(conditions) == 0:
+        where = None
+    elif len(conditions) == 1:
+        where = conditions[0]
+    else:
+        where = {"$and": conditions}
 
     results = vs.similarity_search(query, k=k, filter=where)
     return results

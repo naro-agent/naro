@@ -242,7 +242,7 @@ async def _handle_proactive(req: ChatRequest) -> ChatResponse:
         options = flow.get("options", [])
 
         empathy = ""
-        if req.message and current_step > 1:
+        if req.message and current_step == 2:
             empathy = "말씀 감사합니다.\n\n"
 
         # 첫 질문이면 안내 문구 추가

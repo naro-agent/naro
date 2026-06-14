@@ -1,237 +1,268 @@
 <mxfile host="app.diagrams.net">
-  <diagram name="NaRo Flow" id="naro-flow-v1">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1400" math="0" shadow="0">
+  <diagram name="NaRo Flow" id="naro-flow-v3">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1600" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <!-- 제목 -->
-        <mxCell id="title" value="나로 (NaRo) 주요 기능 흐름도" style="text;html=1;fontSize=22;fontStyle=1;fontColor=#191F28;align=center;" vertex="1" parent="1">
-          <mxGeometry x="150" y="20" width="600" height="36" as="geometry" />
+        <mxCell id="title" value="나로 (NaRo) 주요 기능 흐름도" style="text;html=1;fontSize=24;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="20" width="700" height="40" as="geometry" />
         </mxCell>
 
         <!-- ① 시작 -->
-        <mxCell id="start" value="서비스 접속" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="325" y="70" width="150" height="50" as="geometry" />
+        <mxCell id="start" value="서비스 접속" style="ellipse;fillColor=#000000;strokeColor=#000000;strokeWidth=2;fontSize=17;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="375" y="70" width="180" height="52" as="geometry" />
         </mxCell>
 
         <!-- ② 홈 화면 -->
-        <mxCell id="home" value="홈 화면" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="325" y="160" width="150" height="46" as="geometry" />
+        <mxCell id="home" value="홈 화면" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=17;" vertex="1" parent="1">
+          <mxGeometry x="375" y="148" width="180" height="50" as="geometry" />
         </mxCell>
 
         <!-- ③ 개인정보 동의 -->
-        <mxCell id="consent" value="개인정보 동의" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="325" y="250" width="150" height="46" as="geometry" />
+        <mxCell id="consent" value="개인정보 동의" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=17;" vertex="1" parent="1">
+          <mxGeometry x="375" y="224" width="180" height="50" as="geometry" />
         </mxCell>
 
         <!-- 동의 여부 분기 -->
-        <mxCell id="consent_check" value="전체 동의?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="315" y="340" width="170" height="70" as="geometry" />
+        <mxCell id="consent_check" value="전체 동의?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="365" y="306" width="200" height="72" as="geometry" />
         </mxCell>
 
         <!-- 미동의 → 이용 불가 -->
-        <mxCell id="consent_no" value="서비스 이용 불가" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="560" y="355" width="150" height="46" as="geometry" />
+        <mxCell id="consent_no" value="서비스 이용 불가" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="660" y="318" width="180" height="50" as="geometry" />
         </mxCell>
 
         <!-- ④ 영역 선택 -->
-        <mxCell id="area" value="진단 영역 선택&#xa;(재무·건강·여가·대인관계)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="460" width="200" height="52" as="geometry" />
+        <mxCell id="area" value="진단 영역 선택&#xa;(재무 · 건강 · 여가활동 · 대인관계)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="340" y="414" width="250" height="54" as="geometry" />
         </mxCell>
 
-        <!-- ⑤ 온보딩 -->
-        <mxCell id="onboarding" value="재무 정보 입력&#xa;(JB금융 연동 or 직접입력)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="560" width="200" height="52" as="geometry" />
+        <!-- ⑤ 재무 프로필 불러오기 -->
+        <mxCell id="onboarding" value="재무 프로필 불러오기&#xa;페르소나 JSON 데이터셋 3종 선택" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="504" width="300" height="54" as="geometry" />
         </mxCell>
 
         <!-- ⑥ 설문조사 -->
-        <mxCell id="survey" value="설문조사&#xa;(기본 5문항 + 영역별 5문항)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="660" width="200" height="52" as="geometry" />
+        <mxCell id="survey" value="노후 준비 설문조사&#xa;기본 5문항 (필수) + 선택 영역별 5문항" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="594" width="300" height="54" as="geometry" />
         </mxCell>
 
         <!-- ⑦ 사전 질문 -->
-        <mxCell id="prediag" value="노후 준비 사전 질문&#xa;(은퇴시기·생활비·리스크 성향)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="760" width="200" height="52" as="geometry" />
+        <mxCell id="prediag" value="노후 준비 사전 질문&#xa;은퇴 나이 · 생활비 · 생애이벤트 · 리스크 성향" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="684" width="300" height="54" as="geometry" />
         </mxCell>
 
-        <!-- ⑧ 재무 대시보드 -->
-        <mxCell id="dashboard" value="재무 현황 대시보드" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="325" y="860" width="150" height="46" as="geometry" />
+        <!-- ⑧ 재무 현황 대시보드 -->
+        <mxCell id="dashboard" value="재무 현황 대시보드&#xa;연금 3층 구조 · 자산부채 · 소비패턴 · 계좌보험" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="774" width="300" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- MLOps 로딩 -->
+        <mxCell id="mlops_loading" value="MLOps 점수 예측 로딩 애니메이션&#xa;KReIS 모델 로딩 → XGBoost 예측 → 동연령 비교" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="315" y="864" width="300" height="54" as="geometry" />
         </mxCell>
 
         <!-- ⑨ 진단 결과 -->
-        <mxCell id="diagnosis" value="진단 결과" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="325" y="950" width="150" height="46" as="geometry" />
+        <mxCell id="diagnosis" value="노후 준비 진단 결과&#xa;국민연금공단 기준 4대 영역 점수 · 동연령 비교" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="954" width="300" height="54" as="geometry" />
         </mxCell>
 
         <!-- 영역 수 분기 -->
-        <mxCell id="area_check" value="선택 영역&#xa;3개 이상?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="315" y="1040" width="170" height="70" as="geometry" />
+        <mxCell id="area_check" value="선택 영역&#xa;3개 이상?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="365" y="1044" width="200" height="72" as="geometry" />
         </mxCell>
 
         <!-- 레이더 차트 -->
-        <mxCell id="radar" value="레이더 차트" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="175" y="1055" width="120" height="40" as="geometry" />
+        <mxCell id="radar" value="레이더 차트&#xa;(3~4개 영역)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1058" width="170" height="50" as="geometry" />
         </mxCell>
 
         <!-- 바 차트 -->
-        <mxCell id="bar" value="바 차트" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="505" y="1055" width="120" height="40" as="geometry" />
+        <mxCell id="bar" value="수평 바 차트&#xa;(1~2개 영역)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1058" width="170" height="50" as="geometry" />
         </mxCell>
 
         <!-- ⑩ 시뮬레이션 -->
-        <mxCell id="simulation" value="생애 현금흐름 시뮬레이션&#xa;(경제지표 반영 · 35년)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="1150" width="200" height="52" as="geometry" />
+        <mxCell id="simulation" value="생애 현금흐름 시뮬레이션&#xa;경제지표 반영 35년 예측 · 불확실성 범위 · AI 인사이트" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1156" width="300" height="54" as="geometry" />
         </mxCell>
 
         <!-- ⑪ 맞춤 추천 -->
-        <mxCell id="recommend" value="맞춤 추천&#xa;(액션카드 + 상품 5개)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
-          <mxGeometry x="300" y="1250" width="200" height="52" as="geometry" />
+        <mxCell id="recommend" value="RAG 기반 맞춤 상품 추천&#xa;영역별 벡터 검색 → Claude 추천 이유 생성" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1246" width="300" height="54" as="geometry" />
         </mxCell>
 
-        <!-- ⑫ AI 상담 모드 분기 -->
-        <mxCell id="chat_check" value="상담 모드?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="315" y="1350" width="170" height="70" as="geometry" />
-        </mxCell>
-
-        <!-- free 모드 -->
-        <mxCell id="chat_free" value="자유 질문 상담&#xa;(free 모드)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="155" y="1365" width="145" height="46" as="geometry" />
-        </mxCell>
-
-        <!-- proactive 모드 -->
-        <mxCell id="chat_pro" value="5단계 가이드 상담&#xa;(proactive 모드)" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="500" y="1365" width="155" height="46" as="geometry" />
-        </mxCell>
-
-        <!-- 종료 -->
-        <mxCell id="end" value="종료" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=15;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="325" y="1470" width="150" height="50" as="geometry" />
-        </mxCell>
-
-        <!-- ══════════════════════════════════════════ -->
-        <!-- 화살표 -->
-        <!-- ══════════════════════════════════════════ -->
-
-        <mxCell id="e1" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="start" target="home">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e2" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="home" target="consent">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e3" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="consent" target="consent_check">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- 동의 Yes -->
-        <mxCell id="e4" value="예" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="consent_check" target="area">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <!-- 동의 No -->
-        <mxCell id="e5" value="아니오" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="consent_check" target="consent_no">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="560" y="375" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <mxCell id="e6" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="area" target="onboarding">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e7" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="onboarding" target="survey">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e8" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="survey" target="prediag">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e9" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="prediag" target="dashboard">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e10" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="dashboard" target="diagnosis">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e11" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="diagnosis" target="area_check">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <!-- 영역 3개 이상 → 레이더 -->
-        <mxCell id="e12" value="예" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="area_check" target="radar">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="315" y="1075" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <!-- 영역 1~2개 → 바 차트 -->
-        <mxCell id="e13" value="아니오" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="area_check" target="bar">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="485" y="1075" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <!-- 레이더 → 시뮬레이션 -->
-        <mxCell id="e14" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="radar" target="simulation">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="235" y="1130" />
-              <mxPoint x="400" y="1130" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <!-- 바 차트 → 시뮬레이션 -->
-        <mxCell id="e15" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="bar" target="simulation">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="565" y="1130" />
-              <mxPoint x="400" y="1130" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <mxCell id="e16" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="simulation" target="recommend">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e17" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="recommend" target="chat_check">
-          <mxGeometry relative="1" as="geometry" />
+        <!-- ⑫ AI 상담 모드 선택 -->
+        <mxCell id="chat_select" value="AI 상담 모드 선택" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=17;" vertex="1" parent="1">
+          <mxGeometry x="375" y="1336" width="180" height="50" as="geometry" />
         </mxCell>
 
         <!-- 상담 모드 분기 -->
-        <mxCell id="e18" value="자유 상담" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="chat_check" target="chat_free">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="315" y="1385" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="chat_check" value="상담 모드?" style="rhombus;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="365" y="1420" width="200" height="72" as="geometry" />
         </mxCell>
-        <mxCell id="e19" value="가이드 상담" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;fontSize=13;" edge="1" parent="1" source="chat_check" target="chat_pro">
+
+        <!-- free 모드 -->
+        <mxCell id="chat_free" value="자유 질문 상담&#xa;추천 질문 5개 제공" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="130" y="1530" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- proactive — 질문 생성 -->
+        <mxCell id="chat_pro_gen" value="AI 맞춤 질문 동적 생성&#xa;진단 취약 영역 기반 3~4개 질문 자동 생성" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1435" width="280" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- proactive — 단계별 답변 -->
+        <mxCell id="chat_pro_step" value="단계별 질문 · 선택지 제공 · 답변 누적" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1530" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- proactive — 종합 분석 -->
+        <mxCell id="chat_pro_summary" value="AI 종합 분석 생성&#xa;전체 답변 기반 맞춤 노후 준비 조언" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1620" width="280" height="54" as="geometry" />
+        </mxCell>
+
+        <!-- 피드백 -->
+        <mxCell id="feedback" value="AI 응답 피드백 수집 (👍 / 👎)&#xa;JSONL 로그 저장" style="rounded=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1724" width="250" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 종료 -->
+        <mxCell id="end" value="종료" style="ellipse;fillColor=#000000;strokeColor=#000000;strokeWidth=2;fontSize=17;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="375" y="1820" width="180" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표 -->
+
+        <mxCell id="e1" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="start" target="home">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="home" target="consent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="consent" target="consent_check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e4" value="예" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" edge="1" parent="1" source="consent_check" target="area">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="아니오" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=15;" edge="1" parent="1" source="consent_check" target="consent_no">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="485" y="1385" />
+              <mxPoint x="660" y="342" />
             </Array>
           </mxGeometry>
         </mxCell>
 
-        <!-- free → 종료 -->
-        <mxCell id="e20" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="chat_free" target="end">
+        <mxCell id="e6" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="area" target="onboarding">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="onboarding" target="survey">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="survey" target="prediag">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="prediag" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="dashboard" target="mlops_loading">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10b" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="mlops_loading" target="diagnosis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="diagnosis" target="area_check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e12" value="3개 이상" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" edge="1" parent="1" source="area_check" target="radar">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="228" y="1495" />
-              <mxPoint x="325" y="1495" />
+              <mxPoint x="365" y="1083" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <!-- proactive → 종료 -->
-        <mxCell id="e21" style="endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" parent="1" source="chat_pro" target="end">
+        <mxCell id="e13" value="1~2개" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" edge="1" parent="1" source="area_check" target="bar">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="578" y="1495" />
-              <mxPoint x="475" y="1495" />
+              <mxPoint x="565" y="1083" />
             </Array>
           </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e14" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="radar" target="simulation">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="245" y="1138" />
+              <mxPoint x="465" y="1138" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="bar" target="simulation">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="685" y="1138" />
+              <mxPoint x="465" y="1138" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e16" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="simulation" target="recommend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="recommend" target="chat_select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17b" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="chat_select" target="chat_check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e18" value="자유 질문" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" edge="1" parent="1" source="chat_check" target="chat_free">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="365" y="1555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" value="가이드 상담" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontSize=14;" edge="1" parent="1" source="chat_check" target="chat_pro_gen">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="565" y="1462" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e20" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="chat_pro_gen" target="chat_pro_step">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="chat_pro_step" target="chat_pro_summary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e22" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="chat_free" target="feedback">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="1749" />
+              <mxPoint x="340" y="1749" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e23" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="chat_pro_summary" target="feedback">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="1749" />
+              <mxPoint x="590" y="1749" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e24" style="endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="feedback" target="end">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
       </root>
