@@ -1,22 +1,117 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Compass, Wallet, Heart, Palmtree, Users } from 'lucide-react';
 import { useAppContext } from '../App.jsx';
 
+const LOADING_STEPS = [
+  { label: '노후 준비 모델을 불러오는 중...', duration: 600 },
+  { label: '4대 영역 진단 기준 로딩 중...', duration: 600 },
+  { label: '맞춤 진단 환경을 준비하는 중...', duration: 500 },
+  { label: '준비 완료!', duration: 400 },
+];
+
+function LoadingOverlay() {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let accumulated = 0;
+    const total = LOADING_STEPS.reduce((s, st) => s + st.duration, 0);
+    let currentStep = 0;
+
+    const tick = () => {
+      if (currentStep >= LOADING_STEPS.length) return;
+      accumulated += LOADING_STEPS[currentStep].duration;
+      setProgress(Math.round((accumulated / total) * 100));
+      currentStep += 1;
+      setStepIdx(currentStep < LOADING_STEPS.length ? currentStep : LOADING_STEPS.length - 1);
+      if (currentStep < LOADING_STEPS.length) {
+        setTimeout(tick, LOADING_STEPS[currentStep].duration);
+      }
+    };
+    setTimeout(tick, LOADING_STEPS[0].duration);
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'linear-gradient(160deg, #1264D3 0%, #0F52B8 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      color: '#fff',
+    }}>
+      {/* 아이콘 펄스 */}
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 28,
+        animation: 'pulse 1.4s ease-in-out infinite',
+      }}>
+        <Compass size={40} color="#fff" strokeWidth={1.4} />
+      </div>
+
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>나로(NaRo)</div>
+      <div style={{ fontSize: 14, opacity: 0.8, marginBottom: 36 }}>노후 준비 점수 예측 중</div>
+
+      {/* 프로그레스 바 */}
+      <div style={{ width: 220, height: 5, background: 'rgba(255,255,255,0.2)', borderRadius: 10, marginBottom: 20, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', borderRadius: 10,
+          background: '#fff',
+          width: `${progress}%`,
+          transition: 'width 0.5s ease',
+        }} />
+      </div>
+
+      {/* 단계 메시지 */}
+      <div style={{ fontSize: 13, opacity: 0.85, minHeight: 20 }}>
+        {LOADING_STEPS[stepIdx].label}
+      </div>
+
+      {/* 점 3개 로딩 */}
+      <div style={{ display: 'flex', gap: 6, marginTop: 24 }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            width: 7, height: 7, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.7)',
+            animation: `dotBounce 1.2s ${i * 0.2}s ease-in-out infinite`,
+          }} />
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.08); opacity: 0.85; }
+        }
+        @keyframes dotBounce {
+          0%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-8px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { setProfile, setDiagnosis, setSimulation, setRecommend } = useAppContext();
+  const [loading, setLoading] = useState(false);
 
   const handleStart = () => {
     setProfile(null);
     setDiagnosis(null);
     setSimulation(null);
     setRecommend(null);
-    navigate('/consent');
+    setLoading(true);
+    const total = LOADING_STEPS.reduce((s, st) => s + st.duration, 0);
+    setTimeout(() => navigate('/consent'), total);
   };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+      {loading && <LoadingOverlay />}
       {/* 히어로 */}
       <div style={{
         background: 'linear-gradient(160deg, #1264D3 0%, #0F52B8 100%)',
@@ -65,12 +160,14 @@ export default function Home() {
 
         <button
           onClick={handleStart}
+          disabled={loading}
           style={{
             width: '100%', maxWidth: 320, height: 56,
             background: '#fff', color: 'var(--primary)',
             fontWeight: 700, fontSize: 17,
             border: 'none', borderRadius: 16,
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
